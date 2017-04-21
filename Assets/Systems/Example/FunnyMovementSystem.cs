@@ -36,7 +36,15 @@ namespace Assets.Systems.Example
 
             //UniRX Magic
             comp.UpdateAsObservable()
-                .Buffer(60)
+                .Where((_, i) => i % 60 == 0)
+
+                /*
+                 * This Logging extensions can be put anywhere in the observable-creation-call-chain 
+                 * to intercept values/errors and print them before they reach your Subscribtion methods.
+                 */
+                .LogError() // Logs OnError and prints exception by using Debug.LogException(). Optionally you can provide a format function.
+                .LogOnNext("move funny") //Logs every OnNext value. Optionally you can provide a format string where {0} is replaced by the value.
+
                 .Subscribe(_ => MoveFunny(comp))
                 .AddTo(comp);
         }
