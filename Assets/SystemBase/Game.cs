@@ -1,12 +1,6 @@
-﻿using Assets.Systems.ImageInput;
-using Assets.Systems.RenderCamImage;
-using Assets.Utils;
+﻿using Assets.Utils;
 using System;
 using System.Collections.Generic;
-using Assets.Systems.Config;
-using Assets.Systems.RenderFASTPoints;
-using Assets.Systems.SVO;
-using Assets.Systems.SVO.Wrapper;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,8 +16,6 @@ namespace Assets.SystemBase
 
         public void Init()
         {
-            new CppDebugger().Start();
-
             MapAllSystemsComponents();
         }
 
@@ -43,14 +35,6 @@ namespace Assets.SystemBase
             IoC.RegisterSingleton(this);
 
             #region System Registration
-
-            RegisterSystem(new ImageInputSystem()); //1
-            RegisterSystem(new ConfigSystem()); // 2
-            RegisterSystem(new SVOSystem()); //10
-
-            RegisterSystem(new RenderCamImageSystem()); //20
-
-            RegisterSystem(new RenderFastPointsSystem()); //30
 
             #endregion System Registration
 
