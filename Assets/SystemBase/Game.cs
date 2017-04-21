@@ -1,6 +1,7 @@
 ﻿using Assets.Utils;
 using System;
 using System.Collections.Generic;
+using Assets.Systems.Example;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -35,6 +36,8 @@ namespace Assets.SystemBase
             IoC.RegisterSingleton(this);
 
             #region System Registration
+
+            RegisterSystem(new FunnyMovementSystem()); // 10
 
             #endregion System Registration
 
