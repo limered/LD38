@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using Assets.Systems.Example;
+using Assets.Systems.TextureGeneration;
 using UnityEngine;
 using UnityEngine.UI;
 
