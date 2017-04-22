@@ -1,7 +1,7 @@
-﻿using System;
-using Assets.SystemBase;
+﻿using Assets.SystemBase;
 using Assets.Systems.Player;
 using Assets.Utils;
+using System;
 using UniRx;
 using UniRx.Triggers;
 using UnityEngine;
@@ -16,7 +16,7 @@ namespace Assets.Systems.WorldRotation
 
         public Type[] ComponentsToRegister
         {
-            get { return new[] {typeof(WorldRotationComponent), typeof(WorldRotationConfigComponent), typeof(PlayerComponent)}; }
+            get { return new[] { typeof(WorldRotationComponent), typeof(WorldRotationConfigComponent), typeof(PlayerComponent) }; }
         }
 
         public void Init()
@@ -45,32 +45,30 @@ namespace Assets.Systems.WorldRotation
             if (!comp) return;
 
             //UniRX Magic
-            comp.UpdateAsObservable()
-
-                /*
-                 * This Logging extensions can be put anywhere in the observable-creation-call-chain 
-                 * to intercept values/errors and print them before they reach your Subscribtion methods.
-                 */
-                .LogError() // Logs OnError and prints exception by using Debug.LogException(). Optionally you can provide a format function.
-                //.LogOnNext("rotate world") //Logs every OnNext value. Optionally you can provide a format string where {0} is replaced by the value.
-
-                .Subscribe(_ => Rotate(comp))
+            comp.OnTriggerStayAsObservable()
+                .Subscribe(coll => Rotate(comp, coll))
                 .AddTo(comp);
         }
 
-        private void Rotate(WorldRotationComponent comp)
+        private void Rotate(WorldRotationComponent comp, Collider coll)
         {
-            var bottomSpherePosition = comp.transform.position + Vector3.down * comp.transform.localScale.x/2;
-            if (Vector3.Distance(bottomSpherePosition, _player.transform.position) < 2)
-            {
-                Debug.Log("bottomSpherePosition: " + bottomSpherePosition);
-                Debug.Log("playerPosition: " + _player.transform.position);
-                Debug.Log("Distance: " + Vector3.Distance(bottomSpherePosition, _player.transform.position));
-                return;
-            }
+            if (coll.gameObject.name != "FPSController") return;
+            var bottomSpherePosition = comp.gameObject.transform.position + Vector3.down * comp.transform.localScale.y / 2;
 
-            Debug.DrawLine(_player.transform.position, bottomSpherePosition);
-            comp.transform.Rotate(_player.transform.position - bottomSpherePosition, 1);
+            var centerToPlayer = _player.gameObject.transform.position - comp.gameObject.transform.position;
+            var centerToGround = bottomSpherePosition - comp.gameObject.transform.position;
+
+            var angle = Vector3.Angle(centerToPlayer, centerToGround);
+            angle *= 0.02f;
+            var axis = Vector3.Cross(centerToPlayer, centerToGround);
+
+            comp.transform.Rotate(axis, angle, Space.World);
+
+            var compPos = _player.transform.position;
+            compPos.y = comp.transform.position.y;
+            var posDif = compPos - comp.transform.position;
+            posDif *= 0.02f;
+            comp.transform.position += posDif;
         }
 
         private void RegisterComponent(PlayerComponent comp)
