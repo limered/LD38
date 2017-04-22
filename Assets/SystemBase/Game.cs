@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using Assets.Systems.Example;
+using Assets.Systems.WorldRotation;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -38,6 +39,7 @@ namespace Assets.SystemBase
             #region System Registration
 
             RegisterSystem(new FunnyMovementSystem()); // 10
+            RegisterSystem(new WorldRotationSystem()); // 10
 
             #endregion System Registration
 
