@@ -6,7 +6,6 @@ using UniRx;
 using UniRx.Triggers;
 using UnityEngine;
 
-[ExecuteInEditMode]
 public class LoopFrameAnimation : MonoBehaviour
 {
     [SerializeField]
@@ -16,8 +15,6 @@ public class LoopFrameAnimation : MonoBehaviour
     [SerializeField]
     private string stateGroup;
     public string StateGroup { get { return stateGroup; } }
-
-    public bool isLooping = false;
 
     [Range(0.01f, 5f)]
     public float interval = 0.25f;
@@ -30,23 +27,23 @@ public class LoopFrameAnimation : MonoBehaviour
 
     protected float lastFrameUpdate = 0f;
 
+    public BoolReactiveProperty ActiveState = new BoolReactiveProperty();
+
     void Awake()
     {
-        if (models == null)
+        if (models != null)
         {
-            ReinitModels();
+            foreach (var model in models)
+            {
+                model.SetActive(false);
+            }
         }
     }
 
     void Start()
     {
-        OnStart();
-    }
-
-    protected virtual void OnStart()
-    {
         this.UpdateAsObservable()
-                .Where(_ => isLooping)
+                .Where(_ => ActiveState.Value && models != null && models.Length > 0)
                 .Where((_, i) =>
                 {
                     lastFrameUpdate += Time.deltaTime;
@@ -62,6 +59,18 @@ public class LoopFrameAnimation : MonoBehaviour
                 .Select(x => (currentFrame + 1) % (models.Length))
                 .Subscribe(ActivateFrame)
                 .AddTo(this);
+
+
+        ActiveState.Subscribe(x =>
+        {
+            if (models != null)
+            {
+                for (int i = 0; i < models.Length; i++)
+                {
+                    models[i].SetActive(x ? i == currentFrame : false);
+                }
+            }
+        }).AddTo(this);
     }
 
     public virtual void ReinitModels()
@@ -83,8 +92,6 @@ public class LoopFrameAnimation : MonoBehaviour
 
         modelList.Sort((x1, x2) => x1.Item1 - x2.Item1);
         models = modelList.Select(x => x.Item2).ToArray();
-
-        ActivateFrame(currentFrame);
     }
 
     public virtual void ActivateFrame(int frame)
