@@ -108,30 +108,6 @@ NavMeshSettings:
     tileSize: 256
     accuratePlacement: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &19963803 stripped
-GameObject:
-  m_PrefabParentObject: {fileID: 1261424781281556, guid: dfd775d5818c04de2b7cb4c04bbc1e9b,
-    type: 2}
-  m_PrefabInternal: {fileID: 1478524281}
---- !u!114 &19963804
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 19963803}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cb8cf7f40a6464b4ba1602c13285c8c2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stateName: Carry
-  stateGroup: Torso
-  interval: 0.25
-  models:
-  - {fileID: 874563285}
-  currentFrame: 0
-  ActiveState:
-    value: 0
 --- !u!1001 &23715074
 Prefab:
   m_ObjectHideFlags: 0
@@ -542,11 +518,6 @@ Prefab:
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: c37a63b9c70d94ee9a2202d4d4ca159d, type: 3}
   m_IsPrefabParent: 0
---- !u!1 &874563285 stripped
-GameObject:
-  m_PrefabParentObject: {fileID: 1756034112586988, guid: dfd775d5818c04de2b7cb4c04bbc1e9b,
-    type: 2}
-  m_PrefabInternal: {fileID: 1478524281}
 --- !u!1 &915659821
 GameObject:
   m_ObjectHideFlags: 0
@@ -975,18 +946,6 @@ Prefab:
     - target: {fileID: 4355651577006464, guid: dfd775d5818c04de2b7cb4c04bbc1e9b, type: 2}
       propertyPath: m_RootOrder
       value: 19
-      objectReference: {fileID: 0}
-    - target: {fileID: 1262980663063124, guid: dfd775d5818c04de2b7cb4c04bbc1e9b, type: 2}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1088124161548118, guid: dfd775d5818c04de2b7cb4c04bbc1e9b, type: 2}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1756034112586988, guid: dfd775d5818c04de2b7cb4c04bbc1e9b, type: 2}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: dfd775d5818c04de2b7cb4c04bbc1e9b, type: 2}

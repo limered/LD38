@@ -1,7 +1,10 @@
 ﻿using Assets.Utils;
 using System;
 using System.Collections.Generic;
+using Assets.Systems.Camera;
 using Assets.Systems.Example;
+using Assets.Systems.PlayerMovement;
+using Assets.Systems.Rotation;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -36,6 +39,10 @@ namespace Assets.SystemBase
             IoC.RegisterSingleton(this);
 
             #region System Registration
+
+            RegisterSystem(new PlayerMovementSystem());//1
+            RegisterSystem(new KameraSystem());//2
+            RegisterSystem(new RotationSystem());//3
 
             RegisterSystem(new FunnyMovementSystem()); // 10
 
