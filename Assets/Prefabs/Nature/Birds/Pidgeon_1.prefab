@@ -353,13 +353,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   stateName: 
   stateGroup: 
-  isLooping: 1
   interval: 0.1
   models:
   - {fileID: 1654828085758462}
   - {fileID: 1654992196661242}
   - {fileID: 1967660010898486}
   currentFrame: 0
+  ActiveState:
+    value: 1
 --- !u!114 &114589743461724682
 MonoBehaviour:
   m_ObjectHideFlags: 1
