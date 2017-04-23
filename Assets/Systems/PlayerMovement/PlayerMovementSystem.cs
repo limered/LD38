@@ -1,8 +1,7 @@
 ﻿using Assets.SystemBase;
+using Assets.Systems.Rotation;
 using Assets.Utils;
 using System;
-using System.Collections;
-using Assets.Systems.Rotation;
 using UniRx;
 using UniRx.Triggers;
 using UnityEngine;
@@ -38,7 +37,6 @@ namespace Assets.Systems.PlayerMovement
             MovePlayer(player);
             FixRotation(player);
             CheckBounds(player);
-
         }
 
         private void CheckBounds(PlayerComponent player)
@@ -79,7 +77,11 @@ namespace Assets.Systems.PlayerMovement
             {
                 direction.z -= 1;
             }
-            player.GetComponent<Rigidbody>().AddForce(direction * 30);
+            var body = player.GetComponent<Rigidbody>();
+            if (body.velocity.magnitude < player.MaxSpeed)
+            {
+                player.GetComponent<Rigidbody>().AddForce(direction * player.MovementSpeed);
+            }
         }
 
         private void CalculateLeft(ref Vector3 direction, RotationEnum rot)
@@ -89,6 +91,7 @@ namespace Assets.Systems.PlayerMovement
             if (rot == RotationEnum.bottom) direction.x = 1;
             if (rot == RotationEnum.right) direction.y = 1;
         }
+
         private void CalculateRight(ref Vector3 direction, RotationEnum rot)
         {
             if (rot == RotationEnum.top) direction.x = 1;
@@ -100,7 +103,7 @@ namespace Assets.Systems.PlayerMovement
         private void FixRotation(PlayerComponent player)
         {
             const float t = 1f / 10;
-            var targetRotation = Quaternion.AngleAxis((int) player.CurrentRotation, Vector3.forward);
+            var targetRotation = Quaternion.AngleAxis((int)player.CurrentRotation, Vector3.forward);
             var rotationStep = Quaternion.Slerp(player.gameObject.transform.localRotation, targetRotation, t);
 
             player.gameObject.transform.localRotation = rotationStep;
