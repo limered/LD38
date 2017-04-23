@@ -351,6 +351,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb8cf7f40a6464b4ba1602c13285c8c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  stateName: 
+  stateGroup: 
+  isLooping: 1
   interval: 0.1
   models:
   - {fileID: 1654828085758462}
