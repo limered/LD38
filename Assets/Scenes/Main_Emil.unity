@@ -337,6 +337,14 @@ Prefab:
       propertyPath: m_RootOrder
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 4100286038524182, guid: e76762d78f926c3418d182694f5f0131, type: 2}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4100286038524182, guid: e76762d78f926c3418d182694f5f0131, type: 2}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: e76762d78f926c3418d182694f5f0131, type: 2}
   m_IsPrefabParent: 0
@@ -802,8 +810,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79b04f07fce930e4085e0e5473d85f17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DayLengthInSec: 255
-  RotationAxis: {x: 0, y: 0, z: 1}
+  DayLengthInSec: 1
+  RotationAxis: {x: 0, y: 1, z: 1}
 --- !u!1 &1636394499
 GameObject:
   m_ObjectHideFlags: 0

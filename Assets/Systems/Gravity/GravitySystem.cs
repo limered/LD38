@@ -18,10 +18,13 @@ namespace Assets.Systems.Gravity
 
         public override void Register(GravityComponent component)
         {
-            var collider = component.gameObject.AddComponent<BoxCollider>();
-            collider.isTrigger = true;
+            var collider = component.GetComponent<Collider>();
+            if (!collider)
+            {
+                collider = component.gameObject.AddComponent<BoxCollider>();
+                collider.isTrigger = true;
+            }
             component.GetComponent<Rigidbody>().useGravity = false;
-
             component.UpdateAsObservable()
                 .Subscribe(_ => UpdateGravity(component))
                 .AddTo(component);
