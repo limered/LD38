@@ -804,6 +804,10 @@ Prefab:
       propertyPath: m_RootOrder
       value: 19
       objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: 7b604daee5f6a4bd09b32f660ba40845, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 83e3d7e35480047f7ad11e8fd1b5a113, type: 2}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 7b604daee5f6a4bd09b32f660ba40845, type: 3}
   m_IsPrefabParent: 0
@@ -823,9 +827,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   size: 100
-  extend: 10.18
+  extend:
+    value: 10
   padding: 0.2
-  offset: {x: 0, y: 5.09, z: 0}
+  fieldSize: 0
+  faceSize: 0
+  offset: {x: 0, y: 5, z: 0}
 --- !u!1 &1648721976
 GameObject:
   m_ObjectHideFlags: 0
