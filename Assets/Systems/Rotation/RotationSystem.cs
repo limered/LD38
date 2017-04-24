@@ -15,9 +15,8 @@ namespace Assets.Systems.Rotation
 
     public class RotationSystem : IGameSystem
     {
-        private GameObject _daPlaya;
         public int Priority { get { return 3; } }
-        public Type[] ComponentsToRegister { get { return new[] {typeof(PlayerComponent), typeof(RotationTrigger)}; } }
+        public Type[] ComponentsToRegister { get { return new[] { typeof(RotationTrigger)}; } }
 
         public void Init()
         {
@@ -25,10 +24,6 @@ namespace Assets.Systems.Rotation
 
         public void RegisterComponent(IGameComponent component)
         {
-            if (component is PlayerComponent)
-            {
-                _daPlaya = component.gameObject;
-            }
             RegisterTrigger(component as RotationTrigger);
         }
 

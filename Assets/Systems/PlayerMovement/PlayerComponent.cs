@@ -11,5 +11,7 @@ namespace Assets.Systems.PlayerMovement
         public int MaxSpeed = 30;
         public RotationEnum CurrentRotation;
         public int Bound;
+
+        public GameObject Model;
     }
 }
