@@ -1,6 +1,5 @@
 ﻿using System;
 using Assets.SystemBase;
-using Assets.Systems.PlayerMovement;
 using Assets.Utils;
 using UniRx;
 using UniRx.Triggers;
@@ -35,12 +34,26 @@ namespace Assets.Systems.FightingSystem
             }
 
             comp.UpdateAsObservable().Subscribe(_ => UpdateFighter(comp)).AddTo(comp);
+            comp.OnCollisionStayAsObservable().Subscribe(collision => CollisionEnter(comp, collision)).AddTo(comp);
+        }
+
+        private void CollisionEnter(FighterComponent comp, Collision collision)
+        {
+            if (KeyCode.Mouse0.IsPressed())
+            {
+                var victimComponent = collision.gameObject.GetComponent<VictimComponent>();
+                if (victimComponent == null)
+                {
+                    return;
+                }
+
+                victimComponent.KnockBack(collision.transform.position - comp.transform.position);
+            }
         }
 
         private void UpdateFighter(FighterComponent fighter)
         {
             AnimateBoxing(fighter);
-            CheckForHit(fighter);
         }
 
         private static void AnimateBoxing(FighterComponent fighter)
@@ -52,25 +65,6 @@ namespace Assets.Systems.FightingSystem
             else
             {
                 fighter.Model.GetComponent<StateFrameAnimation>().ActivateState("IdleTorso");
-            }
-        }
-
-        private void CheckForHit(FighterComponent fighter)
-        {
-            var direction = fighter.gameObject.GetComponent<PlayerComponent>().Direction;
-
-
-            if (KeyCode.Mouse0.IsPressed())
-            {
-                RaycastHit hit;
-                if (Physics.Raycast(fighter.Model.transform.position, fighter.transform.position + direction, out hit))
-                {
-                    var item = hit.transform.GetComponent<VictimComponent>();
-                    if (item != null)
-                    {
-                        Debug.DrawLine(fighter.Model.transform.position, hit.point);
-                    }
-                }
             }
         }
     }
