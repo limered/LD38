@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using Assets.Systems.Camera;
+using Assets.Systems.DayNight;
 using Assets.Systems.Example;
 using Assets.Systems.PlayerMovement;
 using Assets.Systems.Rotation;
@@ -43,6 +44,7 @@ namespace Assets.SystemBase
             RegisterSystem(new PlayerMovementSystem());//1
             RegisterSystem(new KameraSystem());//2
             RegisterSystem(new RotationSystem());//3
+            RegisterSystem(new DayNightSystem()); // 5
 
             RegisterSystem(new FunnyMovementSystem()); // 10
 
