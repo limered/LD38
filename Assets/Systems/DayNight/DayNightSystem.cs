@@ -61,7 +61,7 @@ namespace Assets.Systems.DayNight
         private void CalculatePositions(Unit _)
         {
             if (_config.DayLengthInSec == 0) return;
-            var rotAxis = (Vector3.forward + Vector3.left).normalized;
+            var rotAxis = _config.RotationAxis.normalized;
             var anglePerSecond = 360f / _config.DayLengthInSec * Time.deltaTime;
             var quat = Quaternion.AngleAxis(anglePerSecond, rotAxis);
 
