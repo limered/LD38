@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Assets.Systems.Camera;
 using Assets.Systems.DayNight;
 using Assets.Systems.Example;
+using Assets.Systems.FightingSystem;
 using Assets.Systems.Gravity;
 using Assets.Systems.PlayerMovement;
 using UnityEngine;
@@ -46,6 +47,7 @@ namespace Assets.SystemBase
             RegisterSystem(new KameraSystem());//2
             RegisterSystem(new GravitySystem());//3
             RegisterSystem(new DayNightSystem()); // 5
+            RegisterSystem(new FightingSystem()); // 6
 
             RegisterSystem(new FunnyMovementSystem()); // 10
 
