@@ -31,6 +31,7 @@ public class NavigationGrid : MonoBehaviour
 
     public Color labelColor = Color.blue;
     public CubeFace[] showGrid = new CubeFace[0];
+    public bool showNeighbourMesh = true;
 
 
 
@@ -60,7 +61,24 @@ public class NavigationGrid : MonoBehaviour
         AddCubeFacePositions(CubeFace.Forward);
         AddCubeFacePositions(CubeFace.Back);
 
+        RecalculateNeighbours();
+
         Debug.Log("Grid created: Range:(" + new Position(grid.Min(x => x.Key.Combined), CubeFace.Up) + ") -> (" + new Position(grid.Max(x => x.Key.Combined), CubeFace.Up) + ")");
+    }
+
+    private void RecalculateNeighbours()
+    {
+        var gridList = grid.ToList();
+        foreach (var p in grid)
+        {
+            gridList.Sort((kv1, kv2) => Math.Sign((p.Value - kv1.Value).sqrMagnitude - (p.Value - kv2.Value).sqrMagnitude));
+
+            var neighbours = gridList.GetRange(0, 8);
+            foreach (var n in neighbours)
+            {
+                p.Key.AddNeighbour(n.Key); //sorry cpu
+            }
+        }
     }
 
     private void AddCubeFacePositions(CubeFace face)
@@ -104,12 +122,15 @@ public class NavigationGrid : MonoBehaviour
         Gizmos.color = new Color(1f, 1f, 1f, 1f);
         Gizmos.DrawWireCube(transform.position + offset, new Vector3(extend.Value + padding, extend.Value + padding, extend.Value + padding));
 
-        Gizmos.color = new Color(1f, 0f, 0f, 1f);
+        var gridColor = new Color(1f, 0f, 0f, 1f);
+        var navColor = new Color(0f, 1f, 0f, 1f);
+
         foreach (var g in grid)
         {
             //Gizmos.DrawWireCube(g.Value + Vector3.up * padding / 2f, new Vector3(fieldSize / 2f, padding, fieldSize / 2f));
-            if(!showGrid.Contains(g.Key.face)) continue;
+            if (!showGrid.Contains(g.Key.face)) continue;
 
+            Gizmos.color = gridColor;
             switch (g.Key.face)
             {
                 case CubeFace.Up:
@@ -125,14 +146,34 @@ public class NavigationGrid : MonoBehaviour
                     Gizmos.DrawWireCube(g.Value + g.Key.face.ToUnitVector() * padding / 2f, new Vector3(fieldSize / 2f, fieldSize / 2f, padding));
                     break;
             }
+
+            if (showNeighbourMesh)
+            {
+                Gizmos.color = navColor;
+                foreach (var n in g.Key.neighbours)
+                {
+                    Gizmos.DrawLine(g.Value, grid[n]);
+                }
+            }
         }
     }
     public class Position
     {
         public readonly short x;
         public readonly short y;
-
         public readonly CubeFace face;
+
+        public Position[] neighbours;
+        public void AddNeighbour(Position n)
+        {
+            if (neighbours == null) neighbours = new[] { n };
+            else if (!neighbours.Contains(n))
+            {
+                var l = neighbours.ToList();
+                l.Add(n);
+                neighbours = l.ToArray();
+            }
+        }
 
         public Position(short x, short y, CubeFace face)
         {
@@ -177,11 +218,11 @@ public class NavigationGrid : MonoBehaviour
 public enum CubeFace
 {
     Up,
-    Down,
-    Left,
     Right,
     Forward,
-    Back,
+    Down,
+    Left,
+    Back
 }
 
 public static class CubeFaceExtensions
