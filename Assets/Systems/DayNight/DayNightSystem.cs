@@ -1,5 +1,6 @@
 ﻿using Assets.SystemBase;
 using System;
+using Assets.Utils;
 using UniRx;
 using UniRx.Triggers;
 using UnityEngine;
@@ -60,6 +61,10 @@ namespace Assets.Systems.DayNight
 
         private void CalculatePositions(Unit _)
         {
+            //if (((int) Time.timeSinceLevelLoad) % 10 == 0)
+            //{
+            //    _config.RotationAxis = new Vector3().RandomVector(new Vector3(-1,-1,-1), new Vector3(1,1,1));
+            //}
             if (_config.DayLengthInSec == 0) return;
             var rotAxis = _config.RotationAxis.normalized;
             var anglePerSecond = 360f / _config.DayLengthInSec * Time.deltaTime;

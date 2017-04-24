@@ -1,7 +1,7 @@
 ﻿using Assets.SystemBase;
-using Assets.Systems.Rotation;
 using Assets.Utils;
 using System;
+using Assets.Systems.Gravity;
 using UniRx;
 using UniRx.Triggers;
 using UnityEngine;
@@ -10,7 +10,6 @@ namespace Assets.Systems.PlayerMovement
 {
     public class PlayerMovementSystem : IGameSystem
     {
-        private RotationEnum _lastRotation = RotationEnum.top;
         public int Priority { get { return 1; } }
         public Type[] ComponentsToRegister { get { return new[] { typeof(PlayerComponent) }; } }
 
@@ -39,6 +38,18 @@ namespace Assets.Systems.PlayerMovement
             CheckBounds(player);
         }
 
+        private void UpdateRunningAnimation(PlayerComponent player, Vector3 force)
+        {
+            if (Mathf.Abs(force.x) > 0 || Mathf.Abs(force.y) > 0 || Mathf.Abs(force.z) > 0)
+            { 
+                player.Model.GetComponent<StateFrameAnimation>().ActivateState("Running");
+            }
+            else
+            {
+                player.Model.GetComponent<StateFrameAnimation>().ActivateState("IdleFeet");
+            }
+        }
+
         private void CheckBounds(PlayerComponent player)
         {
             if (player.transform.position.z > player.Bound)
@@ -62,18 +73,18 @@ namespace Assets.Systems.PlayerMovement
             var direction = new Vector3();
             if (KeyCode.A.IsPressed())
             {
-                CalculateLeft(ref direction, player.CurrentRotation);
+                CalculateLeft(ref direction, player.GetComponent<GravityComponent>().CurrentRotation);
             }
-            else if (KeyCode.D.IsPressed())
+            if (KeyCode.D.IsPressed())
             {
-                CalculateRight(ref direction, player.CurrentRotation);
+                CalculateRight(ref direction, player.GetComponent<GravityComponent>().CurrentRotation);
             }
 
             if (KeyCode.W.IsPressed())
             {
                 direction.z += 1;
             }
-            else if (KeyCode.S.IsPressed())
+            if (KeyCode.S.IsPressed())
             {
                 direction.z -= 1;
             }
@@ -82,28 +93,39 @@ namespace Assets.Systems.PlayerMovement
             {
                 player.GetComponent<Rigidbody>().AddForce(direction * player.MovementSpeed);
             }
+            ChangeModelDirection(player, direction);
+            UpdateRunningAnimation(player, direction);
+        }
+
+        private void ChangeModelDirection(PlayerComponent player, Vector3 forceDir)
+        {
+            player.Model.transform.position = player.transform.position;
+            forceDir.Normalize();
+            if (Math.Abs(forceDir.magnitude) < 0.000000001) return;
+            player.Direction = forceDir;
+            player.Model.transform.rotation = Quaternion.LookRotation(forceDir, player.transform.up);
         }
 
         private void CalculateLeft(ref Vector3 direction, RotationEnum rot)
         {
-            if (rot == RotationEnum.top) direction.x = -1;
-            if (rot == RotationEnum.left) direction.y = -1;
-            if (rot == RotationEnum.bottom) direction.x = 1;
-            if (rot == RotationEnum.right) direction.y = 1;
+            if (rot == RotationEnum.Top) direction.x -= 1;
+            if (rot == RotationEnum.Left) direction.y -= 1;
+            if (rot == RotationEnum.Bottom) direction.x += 1;
+            if (rot == RotationEnum.Right) direction.y += 1;
         }
 
         private void CalculateRight(ref Vector3 direction, RotationEnum rot)
         {
-            if (rot == RotationEnum.top) direction.x = 1;
-            if (rot == RotationEnum.left) direction.y = 1;
-            if (rot == RotationEnum.bottom) direction.x = -1;
-            if (rot == RotationEnum.right) direction.y = -1;
+            if (rot == RotationEnum.Top) direction.x += 1;
+            if (rot == RotationEnum.Left) direction.y += 1;
+            if (rot == RotationEnum.Bottom) direction.x -= 1;
+            if (rot == RotationEnum.Right) direction.y -= 1;
         }
 
         private void FixRotation(PlayerComponent player)
         {
             const float t = 1f / 10;
-            var targetRotation = Quaternion.AngleAxis((int)player.CurrentRotation, Vector3.forward);
+            var targetRotation = Quaternion.AngleAxis((int)player.GetComponent<GravityComponent>().CurrentRotation, Vector3.forward);
             var rotationStep = Quaternion.Slerp(player.gameObject.transform.localRotation, targetRotation, t);
 
             player.gameObject.transform.localRotation = rotationStep;
