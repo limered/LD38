@@ -1,10 +1,11 @@
 ﻿using System;
-using System.Diagnostics;
 using Assets.SystemBase;
+using Assets.Systems.PlayerMovement;
 using Assets.Utils;
 using UniRx;
 using UniRx.Triggers;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace Assets.Systems.FightingSystem
 {
@@ -39,6 +40,7 @@ namespace Assets.Systems.FightingSystem
         private void UpdateFighter(FighterComponent fighter)
         {
             AnimateBoxing(fighter);
+            CheckForHit(fighter);
         }
 
         private static void AnimateBoxing(FighterComponent fighter)
@@ -50,6 +52,25 @@ namespace Assets.Systems.FightingSystem
             else
             {
                 fighter.Model.GetComponent<StateFrameAnimation>().ActivateState("IdleTorso");
+            }
+        }
+
+        private void CheckForHit(FighterComponent fighter)
+        {
+            var direction = fighter.gameObject.GetComponent<PlayerComponent>().Direction;
+
+
+            if (KeyCode.Mouse0.IsPressed())
+            {
+                RaycastHit hit;
+                if (Physics.Raycast(fighter.Model.transform.position, fighter.transform.position + direction, out hit))
+                {
+                    var item = hit.transform.GetComponent<VictimComponent>();
+                    if (item != null)
+                    {
+                        Debug.DrawLine(fighter.Model.transform.position, hit.point);
+                    }
+                }
             }
         }
     }

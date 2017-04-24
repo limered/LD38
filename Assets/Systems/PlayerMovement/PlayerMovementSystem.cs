@@ -102,6 +102,7 @@ namespace Assets.Systems.PlayerMovement
             player.Model.transform.position = player.transform.position;
             forceDir.Normalize();
             if (Math.Abs(forceDir.magnitude) < 0.000000001) return;
+            player.Direction = forceDir;
             player.Model.transform.rotation = Quaternion.LookRotation(forceDir, player.transform.up);
         }
 

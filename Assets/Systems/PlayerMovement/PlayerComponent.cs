@@ -11,5 +11,6 @@ namespace Assets.Systems.PlayerMovement
         public int Bound;
 
         public GameObject Model;
+        public Vector3 Direction { get; set; }
     }
 }
