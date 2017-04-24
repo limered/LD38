@@ -1,6 +1,6 @@
 ﻿using Assets.SystemBase;
 
-namespace Assets.Systems.Rotation
+namespace Assets.Systems.Gravity
 {
     public class RotationTrigger : GameComponent
     {

@@ -23,7 +23,7 @@ namespace Assets.SystemBase
 
         public virtual Type[] ComponentsToRegister { get { return new[] { typeof(TComponent) }; } }
 
-        private Dictionary<Type, Action<IGameComponent>> registerMethods;
+        private Dictionary<Type, Action<IGameComponent>> _registerMethods;
 
         public virtual void Init()
         {
@@ -31,24 +31,25 @@ namespace Assets.SystemBase
 
         public void RegisterComponent(IGameComponent component)
         {
-            if (registerMethods == null)
+            if (_registerMethods == null)
             {
-                registerMethods = new Dictionary<Type, Action<IGameComponent>>();
-                var methods = this.GetType().GetMethods();
+                _registerMethods = new Dictionary<Type, Action<IGameComponent>>();
+                MethodInfo[] methods = GetType().GetMethods();
                 foreach (var m in methods)
                 {
                     if (m.Name == "Register" && m.GetParameters().Length == 1)
                     {
-                        Debug.Log(this.GetType().Name + ": found Register(" + m.GetParameters()[0].ParameterType.Name + ")");
-                        registerMethods.Add(m.GetParameters()[0].ParameterType, (IGameComponent c) => m.Invoke(this, new[] { c }));
+                        Debug.Log(GetType().Name + ": found Register(" + m.GetParameters()[0].ParameterType.Name + ")");
+                        // ReSharper disable once AccessToForEachVariableInClosure
+                        _registerMethods.Add(m.GetParameters()[0].ParameterType, c => m.Invoke(this, new object[] { c }));
                     }
                 }
             }
 
-            if(registerMethods.ContainsKey(component.GetType()))
-                registerMethods[component.GetType()](component);
+            if(_registerMethods.ContainsKey(component.GetType()))
+                _registerMethods[component.GetType()](component);
             else
-                Debug.LogError(this.GetType().Name+": No Register-Method found for '"+component.GetType().Name+"'");
+                Debug.LogError(GetType().Name+": No Register-Method found for '"+component.GetType().Name+"'");
         }
 
         public abstract void Register(TComponent component);

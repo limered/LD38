@@ -1,5 +1,6 @@
 ﻿using System;
 using Assets.SystemBase;
+using Assets.Systems.Gravity;
 using Assets.Systems.PlayerMovement;
 using Assets.Utils;
 using UniRx;
@@ -51,7 +52,7 @@ namespace Assets.Systems.Camera
                 var axis = Vector3.Cross(camera.transform.forward, originToPlayer);
                 camera.transform.Rotate(axis, angle, Space.World);
 
-                var targetRotation = Quaternion.AngleAxis((int) playerComp.CurrentRotation, Vector3.forward);
+                var targetRotation = Quaternion.AngleAxis((int)_daPlaya.GetComponent<GravityComponent>().CurrentRotation, Vector3.forward);
                 var rotationStep = Quaternion.Slerp(camera.gameObject.transform.localRotation, targetRotation, t);                
                 camera.gameObject.transform.localRotation = rotationStep;
             }
