@@ -874,7 +874,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb00fdd5ef6e64e0ca53b7655149f0da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  size: 2
+  size: 5
   extend:
     value: 30
   padding: 0.2
@@ -884,6 +884,8 @@ MonoBehaviour:
   labelOffset: {x: 20, y: 0, z: -5}
   labelDistance: 5
   labelColor: {r: 1, g: 1, b: 1, a: 1}
+  showGrid: 000000000100000002000000030000000400000005000000
+  showNeighbourMesh: 1
 --- !u!4 &1578147649
 Transform:
   m_ObjectHideFlags: 0
