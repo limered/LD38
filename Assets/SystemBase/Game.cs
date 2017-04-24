@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Assets.Systems.Camera;
 using Assets.Systems.DayNight;
+using Assets.Systems.Enemy;
 using Assets.Systems.Example;
 using Assets.Systems.FightingSystem;
 using Assets.Systems.Gravity;
@@ -50,6 +51,8 @@ namespace Assets.SystemBase
             RegisterSystem(new FightingSystem()); // 6
 
             RegisterSystem(new FunnyMovementSystem()); // 10
+
+            RegisterSystem(new EnemySystem());//12
 
             RegisterSystem(new PathSystem()); // 20
 
