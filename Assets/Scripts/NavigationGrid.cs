@@ -30,7 +30,7 @@ public class NavigationGrid : MonoBehaviour
     public float labelDistance = 5f;
 
     public Color labelColor = Color.blue;
-    public bool showGrid = true;
+    public CubeFace[] showGrid = new CubeFace[0];
 
 
 
@@ -68,7 +68,6 @@ public class NavigationGrid : MonoBehaviour
         var center = transform.position + face.ToUnitVector() * extend.Value / 2f + Vector3.up * extend.Value / 2f;
         var upperLeft = center
         + face.ToUpperLeftUnitVector() * (Mathf.Sqrt(extend.Value * extend.Value + extend.Value * extend.Value) / 2f) // upper left
-        //- new Vector3(fieldSize/2f, 0, fieldSize/2f); // center field
         + face.ToUpperLeftUnitVector() * (-Mathf.Sqrt(fieldSize * fieldSize + fieldSize * fieldSize) / 4f) // center field
         ;
 
@@ -105,11 +104,11 @@ public class NavigationGrid : MonoBehaviour
         Gizmos.color = new Color(1f, 1f, 1f, 1f);
         Gizmos.DrawWireCube(transform.position + offset, new Vector3(extend.Value + padding, extend.Value + padding, extend.Value + padding));
 
-        if(!showGrid) return;
         Gizmos.color = new Color(1f, 0f, 0f, 1f);
         foreach (var g in grid)
         {
             //Gizmos.DrawWireCube(g.Value + Vector3.up * padding / 2f, new Vector3(fieldSize / 2f, padding, fieldSize / 2f));
+            if(!showGrid.Contains(g.Key.face)) continue;
 
             switch (g.Key.face)
             {

@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using UniRx;
 using UniRx.Triggers;
+using System.Linq;
 
 [CustomEditor(typeof(NavigationGrid))]
 public class NavigationGridEditor : Editor
@@ -44,7 +45,7 @@ public class NavigationGridEditor : Editor
         
         foreach (var gf in grid.GridFields)
         {
-            if(gf.Key != null && gf.Value != null) Handles.Label(gf.Value, gf.Key.ToString(), coordinateStyle);
+            if(gf.Key != null && grid.showGrid.Contains(gf.Key.face) && gf.Value != null) Handles.Label(gf.Value, gf.Key.ToString(), coordinateStyle);
         }
     }
 
