@@ -8,6 +8,7 @@ namespace Assets.Systems.Example
     {
         public void Move(Vector3 direction)
         {
+            
         }
     }
 }

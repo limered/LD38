@@ -8,29 +8,20 @@ using UnityEngine;
 
 namespace Assets.Systems.Example
 {
-    public class FunnyMovementSystem : IGameSystem
+    public class FunnyMovementSystem : GameSystem<FunnyMovementComponent, FunnyMovementConfigComponent>
     {
         private float _speed;
 
         //needs to be set for loading order and component registration order
-        public int Priority { get { return 10; } }
+        public override int Priority { get { return 10; } }
 
-        // Components, that register to this system
-        public Type[] ComponentsToRegister { get { return new[] { typeof(FunnyMovementComponent), typeof(FunnyMovementConfigComponent) }; } }
-
-        public void Init()
+        public override void Init()
         {
             //could be added to IoC
             IoC.RegisterSingleton(this);
         }
 
-        public void RegisterComponent(IGameComponent component)
-        {
-            RegisterComponent(component as FunnyMovementComponent);
-            RegisterComponent(component as FunnyMovementConfigComponent);
-        }
-
-        private void RegisterComponent(FunnyMovementComponent comp)
+        public override void Register(FunnyMovementComponent comp)
         {
             if (!comp) return;
 
@@ -49,7 +40,7 @@ namespace Assets.Systems.Example
                 .AddTo(comp);
         }
 
-        private void RegisterComponent(FunnyMovementConfigComponent comp)
+        public override void Register(FunnyMovementConfigComponent comp)
         {
             if (!comp) return;
 

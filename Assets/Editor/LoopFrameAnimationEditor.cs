@@ -5,14 +5,15 @@ using UnityEditor;
 [CustomEditor(typeof(LoopFrameAnimation))]
 public class LoopFrameAnimationEditor : Editor
 {
+    private LoopFrameAnimation animation;
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
         
-        LoopFrameAnimation myScript = (LoopFrameAnimation)target;
+        animation = (LoopFrameAnimation)target;
         if(GUILayout.Button("Reinit Models"))
         {
-            myScript.ReinitModels();
+            animation.ReinitModels();
         }
     }
 }

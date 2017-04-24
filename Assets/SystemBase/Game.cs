@@ -7,6 +7,7 @@ using Assets.Systems.PlayerMovement;
 using Assets.Systems.Rotation;
 using UnityEngine;
 using UnityEngine.UI;
+using Assets.Systems.Pathfinding;
 
 namespace Assets.SystemBase
 {
@@ -45,6 +46,8 @@ namespace Assets.SystemBase
             RegisterSystem(new RotationSystem());//3
 
             RegisterSystem(new FunnyMovementSystem()); // 10
+
+            RegisterSystem(new PathSystem()); // 20
 
             #endregion System Registration
 
