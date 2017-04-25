@@ -1,23 +1,37 @@
 using System;
+using System.Collections.Generic;
 using Assets.SystemBase;
 using Assets.Systems.PlayerMovement;
 using Assets.Utils;
 using UnityEngine;
+using UniRx;
+using System.Linq;
 
 namespace Assets.Systems.Pathfinding
 {
-    public class PathSystem : GameSystem<CanFindPathComponent>
+    public class PathSystem : GameSystem<CanFindPathComponent, CanMoveOnPathComponent>
     {
         public override int Priority { get { return 20; } }
 
         public override void Register(CanFindPathComponent component)
         {
-            Debug.LogWarning("todo");
-
-            var nav = IoC.Resolve<NavigationGrid>();
-            // var path = nav.FindPath(new Position(0, 0, CubeFace.Up), new Position(0, 2, CubeFace.Up));
-            // if(path != null) Debug.Log("found path: "+path.Count);
-            // else Debug.Log("CANNOT found path");
+            component.Destination.Subscribe(_ => CalculatePath(component)).AddTo(component);
         }
+
+        private void CalculatePath(CanFindPathComponent component)
+        {
+            var dest = component.Destination.Value;
+            var start = Grid.GetPosition(component.transform.position);
+
+            component.SetPath(Grid.FindPath(start, dest));
+        }
+
+        public override void Register(CanMoveOnPathComponent component)
+        {
+            throw new NotImplementedException();
+        }
+
+        private NavigationGrid grid = null;
+        private NavigationGrid Grid { get { return grid != null ? grid : (grid = IoC.Resolve<NavigationGrid>()); } }
     }
 }

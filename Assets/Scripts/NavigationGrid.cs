@@ -20,7 +20,7 @@ public class NavigationGrid : MonoBehaviour
     [SerializeField]
     private float faceSize;
 
-    private readonly Dictionary<Position, Vector3> grid = new Dictionary<Position, Vector3>();
+    public readonly Dictionary<Position, Vector3> grid = new Dictionary<Position, Vector3>();
     public KeyValuePair<Position, Vector3>[] GridFields { get { return grid.ToArray(); } }
 
     public Vector3 offset = Vector3.zero;
@@ -61,6 +61,13 @@ public class NavigationGrid : MonoBehaviour
         var astar = new AStar(cache[from], cache[to]);
         astar.Run();
         return astar.GetPath().Select(x => ((Node)x).pos).ToList();
+    }
+
+    public Position GetPosition(Vector3 worldPosition)
+    {
+        Position pos = null;
+        return grid.Aggregate(pos, (p, n) => (pos == null) ? n.Key :
+            (grid[p] - worldPosition).sqrMagnitude < (grid[n.Key] - worldPosition).sqrMagnitude ? p : n.Key);
     }
 
     public void RecalculateGrid(float extend)
@@ -187,6 +194,8 @@ public class NavigationGrid : MonoBehaviour
             }
         }
     }
+
+    [Serializable]
     public class Position
     {
         public bool blocked = false;
