@@ -30,7 +30,7 @@ namespace Assets.Systems.Pathfinding
         {
             throw new NotImplementedException();
         }
-
+        
         private NavigationGrid grid = null;
         private NavigationGrid Grid { get { return grid != null ? grid : (grid = IoC.Resolve<NavigationGrid>()); } }
     }
