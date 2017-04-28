@@ -7,13 +7,7 @@ namespace Assets.Systems.Pathfinding
 {
     public class CanFindPathComponent : GameComponent
     {
-        public ReactiveProperty<NavigationGrid.Position> Destination = new ReactiveProperty<NavigationGrid.Position>();
-        public List<NavigationGrid.Position> CurrentPath {get; private set;}
-        
-        public void SetPath(List<NavigationGrid.Position> path)
-        {
-            CurrentPath = path;
-        }
-
+        public ReactiveProperty<Position> Destination = new ReactiveProperty<Position>();
+        public ReactiveProperty<List<Position>> CurrentPath = new ReactiveProperty<List<Position>>();
     }
 }

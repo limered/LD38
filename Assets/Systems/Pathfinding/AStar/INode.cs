@@ -1,16 +1,7 @@
 //Source: https://raw.githubusercontent.com/jbaldwin/astar.cs/master/INode.cs
+
 using System.Collections.Generic;
 
-/// <summary>
-/// The A* algorithm takes a starting node and a goal node and searchings from
-/// start to the goal.
-/// 
-/// The nodes can be setup in a graph ahead of running the algorithm or the children
-/// nodes can be generated on the fly when the A* algorithm requests the Children property.
-/// 
-/// See the square puzzle implementation to see the children being generated on the fly instead
-/// of the classical image/graph search with walls.
-/// </summary>
 public interface INode
 {
     /// <summary>

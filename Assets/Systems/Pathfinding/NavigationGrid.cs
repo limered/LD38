@@ -15,10 +15,10 @@ public class NavigationGrid : MonoBehaviour
     public float padding = 0.2f;
 
     [SerializeField]
-    private float fieldSize;
+    public float fieldSize;
 
     [SerializeField]
-    private float faceSize;
+    public float faceSize;
 
     public readonly Dictionary<Position, Vector3> grid = new Dictionary<Position, Vector3>();
     public KeyValuePair<Position, Vector3>[] GridFields { get { return grid.ToArray(); } }
@@ -32,6 +32,8 @@ public class NavigationGrid : MonoBehaviour
     public Color labelColor = Color.blue;
     public CubeFace[] showGrid = new CubeFace[0];
     public bool showNeighbourMesh = true;
+    public bool recalculateLabelOffset = false;
+
 
     private readonly BoolReactiveProperty gridCalculating = new BoolReactiveProperty();
     public IObservable<Unit> OnGridCalculated()
@@ -70,6 +72,15 @@ public class NavigationGrid : MonoBehaviour
             (grid[p] - worldPosition).sqrMagnitude < (grid[n.Key] - worldPosition).sqrMagnitude ? p : n.Key);
     }
 
+    public Dictionary<Position, Vector3> GetVectorField(Position from, Position to)
+    {
+        var vectorField = new Dictionary<Position, Vector3>();
+
+
+
+        return vectorField;
+    }
+
     public void RecalculateGrid(float extend)
     {
         try
@@ -78,7 +89,7 @@ public class NavigationGrid : MonoBehaviour
             offset = Vector3.up * extend / 2f;
             faceSize = (extend) * 2f;
             fieldSize = faceSize / size;
-            labelOffset = new Vector3(faceSize / 3, 0, -faceSize / 12);
+            if (recalculateLabelOffset) labelOffset = new Vector3(faceSize / 3, 0, -faceSize / 12);
 
             grid.Clear();
             AddCubeFacePositions(CubeFace.Up);
@@ -88,10 +99,10 @@ public class NavigationGrid : MonoBehaviour
             AddCubeFacePositions(CubeFace.Forward);
             AddCubeFacePositions(CubeFace.Back);
 
-            RecalculateNeighbours();
+            //RecalculateNeighbours();
 
             Debug.Log("Grid created: Range:(" + new Position(grid.Min(x => x.Key.Combined), CubeFace.Up) + ") -> (" + new Position(grid.Max(x => x.Key.Combined), CubeFace.Up) + ")");
-            Debug.Log("Each field has 8 neighbours: " + grid.All(x => x.Key.neighbours.Length == 8));
+//            Debug.Log("Each field has 8 neighbours: " + grid.All(x => x.Key.neighbours.Length == 8));
         }
         catch (Exception e)
         {
@@ -102,7 +113,6 @@ public class NavigationGrid : MonoBehaviour
             gridCalculating.Value = false;
         }
     }
-
     private void RecalculateNeighbours()
     {
         var gridList = grid.ToList();
@@ -110,7 +120,9 @@ public class NavigationGrid : MonoBehaviour
         {
             gridList.Sort((kv1, kv2) => Math.Sign((p.Value - kv1.Value).sqrMagnitude - (p.Value - kv2.Value).sqrMagnitude));
 
-            var neighbours = gridList.GetRange(0, 8);
+            var neighbours = ((p.Key.x == 0 || p.Key.x == size - 1) && (p.Key.y == 0 || p.Key.y == size - 1)) 
+                ? gridList.GetRange(0, 7) 
+                : gridList.GetRange(0, 8);
             foreach (var n in neighbours)
             {
                 p.Key.AddNeighbour(n.Key); //sorry cpu
@@ -193,199 +205,5 @@ public class NavigationGrid : MonoBehaviour
                 }
             }
         }
-    }
-
-    [Serializable]
-    public class Position
-    {
-        public bool blocked = false;
-        public readonly short x;
-        public readonly short y;
-        public readonly CubeFace face;
-
-        public Position[] neighbours;
-        public void AddNeighbour(Position n)
-        {
-            if (neighbours == null) neighbours = new[] { n };
-            else if (!neighbours.Contains(n))
-            {
-                var l = neighbours.ToList();
-                l.Add(n);
-                neighbours = l.ToArray();
-            }
-        }
-
-        public Position(short x, short y, CubeFace face)
-        {
-            this.x = x;
-            this.y = y;
-            this.face = face;
-        }
-
-        public Position(int xAndyCombined, CubeFace face)
-        {
-            this.x = (short)(xAndyCombined >> 16);
-            this.y = (short)(xAndyCombined & 0xFFFF);
-            this.face = face;
-        }
-
-        public int Combined { get { return (x << 16) + y; } }
-
-        public override int GetHashCode()
-        {
-            return Combined;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null || GetType() != obj.GetType())
-            {
-                return false;
-            }
-
-            return ((Position)obj).GetHashCode() == this.GetHashCode();
-        }
-
-        public override string ToString()
-        {
-            return "(" + x + ", " + y + ")";
-        }
-    }
-
-    public class Node : INode
-    {
-        private readonly Dictionary<Position, Node> cache;
-        public readonly Position pos;
-        private readonly Dictionary<Position, Vector3> grid;
-        private bool isOpenList = false;
-        private bool isClosedList = false;
-
-
-        public Node(Dictionary<Position, Vector3> grid, Position position, Dictionary<Position, Node> cache)
-        {
-            this.grid = grid;
-            this.pos = position;
-            this.cache = cache;
-
-            // cache.Add(pos, this);
-        }
-
-        public int TotalCost { get { return MovementCost + EstimatedCost; } }
-
-        public int MovementCost { get; private set; }
-
-        public int EstimatedCost { get; private set; }
-
-        public INode Parent { get; set; }
-
-        private IEnumerable<INode> children;
-        public IEnumerable<INode> Children
-        {
-            get
-            {
-                if (children == null)
-                {
-                    var l = new List<INode>();
-                    l.AddRange(pos.neighbours.Select(x => (INode)cache[x]).ToList());
-                    children = l;
-                }
-                return children;
-            }
-        }
-
-        public bool IsClosedList(IEnumerable<INode> closedList)
-        {
-            return isClosedList || pos.blocked;
-        }
-
-        public bool IsGoal(INode goal)
-        {
-            return this.pos == ((Node)goal).pos;
-        }
-
-        public bool IsOpenList(IEnumerable<INode> openList)
-        {
-            return isOpenList;
-        }
-
-        public void SetClosedList(bool value)
-        {
-            isClosedList = value;
-        }
-
-        public void SetEstimatedCost(INode goal)
-        {
-            var g = (Node)goal;
-            //this.EstimatedCost = Math.Abs(this.pos.x - g.pos.x) + Math.Abs(this.pos.y - g.pos.y); //stupid (use real distance instead)
-            this.EstimatedCost = (int)(grid[pos] - grid[g.pos]).sqrMagnitude;
-        }
-
-        public void SetMovementCost(INode parent)
-        {
-            this.MovementCost = parent.MovementCost + 1;
-        }
-
-        public void SetOpenList(bool value)
-        {
-            isOpenList = value;
-        }
-    }
-}
-
-public enum CubeFace
-{
-    Up,
-    Right,
-    Forward,
-    Down,
-    Left,
-    Back
-}
-
-public static class CubeFaceExtensions
-{
-    public static Vector3 ToUnitVector(this CubeFace cubeFace)
-    {
-        switch (cubeFace)
-        {
-            case CubeFace.Up: return Vector3.up;
-            case CubeFace.Down: return Vector3.down;
-            case CubeFace.Left: return Vector3.left;
-            case CubeFace.Right: return Vector3.right;
-            case CubeFace.Forward: return Vector3.forward;
-            case CubeFace.Back: return Vector3.back;
-
-            default: throw new NotImplementedException("wtf òÓ");
-        }
-    }
-
-    public static Vector3 ToUpperLeftUnitVector(this CubeFace cubeFace)
-    {
-        var one = new Vector3(1, 1, 1);
-        switch (cubeFace)
-        {
-            case CubeFace.Up: return (cubeFace.ToUnitVector() - one).normalized;
-            case CubeFace.Down: return -CubeFace.Up.ToUpperLeftUnitVector();
-            case CubeFace.Right: return (cubeFace.ToUnitVector() - one).normalized;
-            case CubeFace.Left: return -CubeFace.Right.ToUpperLeftUnitVector();
-            case CubeFace.Forward: return (cubeFace.ToUnitVector() - one).normalized;
-            case CubeFace.Back: return -CubeFace.Forward.ToUpperLeftUnitVector();
-
-            default: throw new NotImplementedException("wtf òÓ");
-        }
-    }
-
-    public static CubeFace ToCubeFace(this Vector3 vector)
-    {
-        var v = vector.normalized;
-        var e = Mathf.Epsilon;
-
-        return
-            Mathf.Approximately(v.x, 0f) && v.y > e ? CubeFace.Up :
-            Mathf.Approximately(v.x, 0f) && v.y < e ? CubeFace.Down :
-            v.x < e && Mathf.Approximately(v.y, 0f) ? CubeFace.Left :
-            v.x > e && Mathf.Approximately(v.y, 0f) ? CubeFace.Right :
-            Mathf.Approximately(v.x, 0f) && Mathf.Approximately(v.y, 0f) && v.z > e ? CubeFace.Forward :
-            CubeFace.Back;
     }
 }
