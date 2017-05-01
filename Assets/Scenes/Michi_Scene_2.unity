@@ -272,17 +272,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71e7c8185bb87472284e5a0b3c273607, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  size: 3
+  size: 25
   extend:
     value: 10
   padding: 0.2
-  fieldSize: 6.6666665
+  fieldSize: 0.8
   faceSize: 20
   offset: {x: 0, y: 5, z: 0}
   labelOffset: {x: 0, y: 0, z: 0}
   labelDistance: 5
   labelColor: {r: 0, g: 0, b: 1, a: 1}
-  showGrid: 000000000100000002000000030000000400000005000000
+  showGrid: 
   showNeighbourMesh: 1
   recalculateLabelOffset: 0
 --- !u!1 &415946372

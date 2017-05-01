@@ -5,6 +5,7 @@ using UnityEngine;
 using UniRx;
 using UniRx.Triggers;
 using System.Linq;
+using Assets.Systems.Pathfinding;
 
 [CustomEditor(typeof(NavigationGrid))]
 public class NavigationGridEditor : Editor

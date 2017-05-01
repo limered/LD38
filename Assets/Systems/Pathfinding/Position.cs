@@ -1,59 +1,151 @@
 using System;
 using System.Linq;
+using UnityEngine;
 
-[Serializable]
-public class Position
+namespace Assets.Systems.Pathfinding
 {
-    public bool blocked = false;
-    public readonly short x;
-    public readonly short y;
-    public readonly CubeFace face;
-
-    public Position[] neighbours;
-    public void AddNeighbour(Position n)
+    [Serializable]
+    public class Position
     {
-        if (neighbours == null) neighbours = new[] { n };
-        else if (!neighbours.Contains(n))
+        public bool blocked = false;
+        public readonly short x;
+        public readonly short y;
+
+        public short normalizedX;
+
+        public readonly short gridSize;
+        public readonly CubeFace face;
+        public readonly Position[] neighbours = new Position[8];
+
+        public readonly Neighbour? missing;
+
+        public Position(short normalizedX, short y, CubeFace face, short gridSize)
         {
-            var l = neighbours.ToList();
-            l.Add(n);
-            neighbours = l.ToArray();
+            this.gridSize = gridSize;
+            this.x = (short)(normalizedX + gridSize * (int)face);
+            this.y = y;
+            this.face = face;
+            this.normalizedX = normalizedX;
+
+            missing = normalizedX == 0 && y == 0 ? Neighbour.LowerLeft
+                      : normalizedX == gridSize - 1 && y == 0 ? Neighbour.LowerRight
+                      : normalizedX == 0 && y == gridSize - 1 ? Neighbour.UpperLeft
+                      : normalizedX == gridSize - 1 && y == gridSize - 1 ? Neighbour.UpperRight
+                      : (Neighbour?)null;
+        }
+
+        public Position(short x, short y, short gridSize)
+        {
+            this.gridSize = gridSize;
+            this.x = x;
+            this.y = y;
+            this.face = (CubeFace)(x / gridSize);
+            this.normalizedX = (short)(x - (int)face * gridSize);
+
+            missing = normalizedX == 0 && y == 0 ? Neighbour.LowerLeft
+                      : normalizedX == gridSize - 1 && y == 0 ? Neighbour.LowerRight
+                      : normalizedX == 0 && y == gridSize - 1 ? Neighbour.UpperLeft
+                      : normalizedX == gridSize - 1 && y == gridSize - 1 ? Neighbour.UpperRight
+                      : (Neighbour?)null;
+        }
+
+        public Position(int xAndyCombined, short gridSize)
+            : this(
+                (short)(xAndyCombined >> 16),
+                (short)(xAndyCombined & 0xFFFF),
+                gridSize
+            )
+        { }
+
+        public Position GetNeighbour(Neighbour neighbour)
+        {
+            return neighbours[(int)neighbour];
+        }
+
+        public void SetNeighbour(Position n, Neighbour dir)
+        {
+            if (!missing.HasValue || missing.Value != dir)
+                neighbours[(int)dir] = n;
+            else
+                throw new ArgumentException(string.Format("Neighbour {0} is not allowed for position {1}", dir, this));
+        }
+
+        public bool HasNeighbour(Neighbour neighbour)
+        {
+            return neighbours[(int)neighbour] != null;
+        }
+
+        public Position this[Neighbour neighbour]
+        {
+            get
+            {
+                return GetNeighbour(neighbour);
+            }
+            set
+            {
+                neighbours[(int)neighbour] = value;
+            }
+        }
+
+        public static int Combine(short x, short y)
+        {
+            return (x << 16) + y;
+        }
+
+        public static void Decombine(int xAndyCombined, out short x, out short y)
+        {
+            x = (short)(xAndyCombined >> 16);
+            y = (short)(xAndyCombined & 0xFFFF);
+        }
+        public int Combined { get { return Combine(x, y); } }
+        public bool IsEdgeField { get { return normalizedX == 0 || normalizedX == gridSize - 1 || y == 0 || y == gridSize - 1; } }
+        public bool IsCornerField { get { return (normalizedX == 0 || normalizedX == gridSize - 1) && (y == 0 || y == gridSize - 1); } }
+
+        public override int GetHashCode()
+        {
+            return Combined;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+
+            return ((Position)obj).GetHashCode() == this.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return "(" + x + ", " + y + ")";
         }
     }
 
-    public Position(short x, short y, CubeFace face)
+    public enum Neighbour
     {
-        this.x = x;
-        this.y = y;
-        this.face = face;
-    }
+        /// (0, 1)
+        Up,
 
-    public Position(int xAndyCombined, CubeFace face)
-    {
-        this.x = (short)(xAndyCombined >> 16);
-        this.y = (short)(xAndyCombined & 0xFFFF);
-        this.face = face;
-    }
+        /// (1, 1)
+        UpperRight,
 
-    public int Combined { get { return (x << 16) + y; } }
+        /// (1, 0)
+        Right,
 
-    public override int GetHashCode()
-    {
-        return Combined;
-    }
+        /// (1, -1)
+        LowerRight,
 
-    public override bool Equals(object obj)
-    {
-        if (obj == null || GetType() != obj.GetType())
-        {
-            return false;
-        }
+        /// (0, -1)
+        Down,
 
-        return ((Position)obj).GetHashCode() == this.GetHashCode();
-    }
+        /// (-1, -1)
+        LowerLeft,
 
-    public override string ToString()
-    {
-        return "(" + x + ", " + y + ")";
+        /// (-1, 0)
+        Left,
+
+        /// (-1, 1)
+        UpperLeft
     }
 }
