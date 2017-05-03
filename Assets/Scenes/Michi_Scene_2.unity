@@ -272,18 +272,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71e7c8185bb87472284e5a0b3c273607, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  size: 25
+  size: 4
   extend:
     value: 10
   padding: 0.2
-  fieldSize: 0.8
+  fieldSize: 5
   faceSize: 20
   offset: {x: 0, y: 5, z: 0}
   labelOffset: {x: 0, y: 0, z: 0}
   labelDistance: 5
-  labelColor: {r: 0, g: 0, b: 1, a: 1}
-  showGrid: 
-  showNeighbourMesh: 1
+  labelColor: {r: 1, g: 1, b: 1, a: 1}
+  showGrid: 0200000004000000
+  showNeighbourMesh: 0
   recalculateLabelOffset: 0
 --- !u!1 &415946372
 GameObject:
@@ -484,7 +484,7 @@ Prefab:
     m_Modifications:
     - target: {fileID: 4100286038524182, guid: e76762d78f926c3418d182694f5f0131, type: 2}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 20.78
       objectReference: {fileID: 0}
     - target: {fileID: 4100286038524182, guid: e76762d78f926c3418d182694f5f0131, type: 2}
       propertyPath: m_LocalPosition.y

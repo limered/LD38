@@ -40,7 +40,7 @@ namespace Assets.Systems.Pathfinding
             this.x = x;
             this.y = y;
             this.face = (CubeFace)(x / gridSize);
-            this.normalizedX = (short)(x - (int)face * gridSize);
+            this.normalizedX = (short)(x % gridSize);
 
             missing = normalizedX == 0 && y == 0 ? Neighbour.LowerLeft
                       : normalizedX == gridSize - 1 && y == 0 ? Neighbour.LowerRight
@@ -53,6 +53,15 @@ namespace Assets.Systems.Pathfinding
             : this(
                 (short)(xAndyCombined >> 16),
                 (short)(xAndyCombined & 0xFFFF),
+                gridSize
+            )
+        { }
+
+        public Position(int xAndyCombined, short gridSize, CubeFace face)
+            : this(
+                (short)((xAndyCombined >> 16) % gridSize),
+                (short)(xAndyCombined & 0xFFFF),
+                face,
                 gridSize
             )
         { }
@@ -118,7 +127,7 @@ namespace Assets.Systems.Pathfinding
 
         public override string ToString()
         {
-            return "(" + x + ", " + y + ")";
+            return "(" +face.ToString().First()+" "+ normalizedX + ", " + y + ")";
         }
     }
 

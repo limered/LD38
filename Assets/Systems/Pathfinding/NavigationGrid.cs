@@ -74,6 +74,11 @@ namespace Assets.Systems.Pathfinding
                 (grid[p] - worldPosition).sqrMagnitude < (grid[n.Key] - worldPosition).sqrMagnitude ? p : n.Key);
         }
 
+        public Position GetPosition(int combined)
+        {
+            return grid.Keys.First(x => x.Combined == combined);
+        }
+
         public Dictionary<Position, Vector3> GetVectorField(Position from, Position to)
         {
             var vectorField = new Dictionary<Position, Vector3>();
@@ -87,6 +92,7 @@ namespace Assets.Systems.Pathfinding
         {
             try
             {
+                var startTime = DateTime.Now;
                 gridCalculating.Value = true;
                 offset = Vector3.up * extend / 2f;
                 faceSize = (extend) * 2f;
@@ -116,7 +122,7 @@ namespace Assets.Systems.Pathfinding
                 Neighbour.UpperLeft
             };
 
-                Debug.Log("Grid created: Range:(" + new Position(grid.Min(x => x.Key.Combined), size) + ") -> (" + new Position(grid.Max(x => x.Key.Combined), size) + ")");
+                Debug.Log("Grid created ("+(DateTime.Now-startTime).TotalMilliseconds+"ms): Range:(" + new Position(grid.Min(x => x.Key.Combined), size) + ") -> (" + new Position(grid.Max(x => x.Key.Combined), size) + ")");
                 Debug.Log("Each field has all neighbours: " + grid.All(x => neighbours.Where(n => !x.Key.missing.HasValue || n != x.Key.missing.Value).All(x.Key.HasNeighbour)));
             }
             catch (Exception e)
@@ -128,6 +134,9 @@ namespace Assets.Systems.Pathfinding
                 gridCalculating.Value = false;
             }
         }
+
+        
+
         private void RecalculateNeighbours()
         {
             short zero = 0, one = 1, negOne = -1;
