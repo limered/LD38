@@ -22,6 +22,44 @@ public class NavigationGridEditor : Editor
         {
             grid.RecalculateGrid(grid.extend.Value);
         }
+
+        if (GUILayout.Button("Test Pathfinding"))
+        {
+             var amount = 10;
+            Queue<Position> rndPositions = new Queue<Position>();
+            Queue<Position> rndPositions2 = new Queue<Position>();
+            for(var i=0; i<amount; i++)
+            {
+                var v = grid.gridLUT.Skip(Random.Range(0, grid.gridLUT.Count - 1)).First().Value;
+                
+                rndPositions.Enqueue(grid.gridLUT.Skip(Random.Range(0, grid.gridLUT.Count - 1)).First().Value);
+                rndPositions.Enqueue(grid.gridLUT.Skip(Random.Range(0, grid.gridLUT.Count - 1)).First().Value);
+            }
+            
+            var startTime = System.DateTime.Now;
+            for(var i=0; i<amount; i++)
+            {
+                var pos1 = rndPositions.Dequeue();
+                rndPositions2.Enqueue(pos1);
+                var pos2 = rndPositions.Dequeue();
+                rndPositions2.Enqueue(pos2);
+                grid.GetVectorField(pos1, pos2);
+            }
+            Debug.Log("Calculated "+amount+" Vectorfields in "+(System.DateTime.Now-startTime).TotalMilliseconds+"ms");
+
+            startTime = System.DateTime.Now;
+            for(var i=0; i<amount; i++)
+            {
+                var pos1 = rndPositions2.Dequeue();
+                rndPositions.Enqueue(pos1);
+                var pos2 = rndPositions2.Dequeue();
+                rndPositions.Enqueue(pos2);
+                // Debug.Log(pos1 + " " + pos2);
+                grid.FindPath(pos1, pos2);
+            }
+            Debug.Log("Calculated "+amount+" A* Paths in "+(System.DateTime.Now-startTime).TotalMilliseconds+"ms");
+        }
+
     }
 
     [DrawGizmo(GizmoType.InSelectionHierarchy | GizmoType.NotInSelectionHierarchy)]
@@ -46,7 +84,7 @@ public class NavigationGridEditor : Editor
         if (grid.showGrid != null && grid.showGrid.Length > 0)
             foreach (var gf in grid.GridFields)
             {
-                if (gf.Key != null && grid.showGrid.Contains(gf.Key.face) && gf.Value != null) Handles.Label(gf.Value, gf.Key.ToString(), coordinateStyle);
+                if (gf.Key != null && grid.renderGrid && grid.showGrid.Contains(gf.Key.face)) Handles.Label(gf.Value, gf.Key.ToString(), coordinateStyle);
             }
     }
 

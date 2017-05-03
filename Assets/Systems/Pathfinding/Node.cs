@@ -38,7 +38,7 @@ namespace Assets.Systems.Pathfinding
                 if (children == null)
                 {
                     var l = new List<INode>();
-                    l.AddRange(pos.neighbours.Select(x => (INode)cache[x]).ToList());
+                    l.AddRange(pos.neighbours.Where(x => x!=null).Select(x => (INode)cache[x]).ToList());
                     children = l;
                 }
                 return children;

@@ -22,10 +22,10 @@ namespace Assets.Systems.Pathfinding
         public Position(short normalizedX, short y, CubeFace face, short gridSize)
         {
             this.gridSize = gridSize;
-            this.x = (short)(normalizedX + gridSize * (int)face);
+            this.normalizedX = (short)(normalizedX % gridSize);
+            this.x = (short)(this.normalizedX + gridSize * (int)face);
             this.y = y;
             this.face = face;
-            this.normalizedX = normalizedX;
 
             missing = normalizedX == 0 && y == 0 ? Neighbour.LowerLeft
                       : normalizedX == gridSize - 1 && y == 0 ? Neighbour.LowerRight

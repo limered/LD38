@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1297107575}
-  m_IndirectSpecularColor: {r: 0.0018922563, g: 0.0019132084, b: 0.0018845717, a: 1}
+  m_IndirectSpecularColor: {r: 0.0018950817, g: 0.001915514, b: 0.0018874817, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -272,18 +272,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71e7c8185bb87472284e5a0b3c273607, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  size: 4
+  size: 10
   extend:
     value: 10
   padding: 0.2
-  fieldSize: 5
+  fieldSize: 2
   faceSize: 20
   offset: {x: 0, y: 5, z: 0}
   labelOffset: {x: 0, y: 0, z: 0}
   labelDistance: 5
   labelColor: {r: 1, g: 1, b: 1, a: 1}
-  showGrid: 0200000004000000
+  renderGrid: 0
+  showGrid: 
   showNeighbourMesh: 0
+  neighbourLineLength: 0.1
   recalculateLabelOffset: 0
 --- !u!1 &415946372
 GameObject:

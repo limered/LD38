@@ -1,50 +1,70 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Assets.Systems.Pathfinding
 {
     public static class GridCalculations
     {
-        private static readonly Dictionary<CubeFaceNeighbours, Func<short, short, int, int>> neighbourConverters = new Dictionary<CubeFaceNeighbours, Func<short, short, int, int>>(){
-            {new CubeFaceNeighbours(CubeFace.Up, CubeFace.Right), (x, y, s) => C(x, y, s)},
-            {new CubeFaceNeighbours(CubeFace.Up, CubeFace.Forward), (x, y, s) => C(x, y, s)},
-            {new CubeFaceNeighbours(CubeFace.Up, CubeFace.Left), (x, y, s) => C(0, y.I(s), s)},
-            {new CubeFaceNeighbours(CubeFace.Up, CubeFace.Back), (x, y, s) => C(x.I(s), y, s)},
+        private static readonly Dictionary<CubeFaceNeighbours, Func<short, short, int, CubeFace, int>> neighbourConverters = new Dictionary<CubeFaceNeighbours, Func<short, short, int, CubeFace, int>>(){
+            {new CubeFaceNeighbours(CubeFace.Up, CubeFace.Right, true), (x, y, s, f) => C(x, y, s, f)},
+            {new CubeFaceNeighbours(CubeFace.Up, CubeFace.Forward, true), (x, y, s, f) => C(x, y, s, f)},
+            {new CubeFaceNeighbours(CubeFace.Up, CubeFace.Left, true), (x, y, s, f) => C(0, y.I(s), s, f)},
+            {new CubeFaceNeighbours(CubeFace.Up, CubeFace.Back, true), (x, y, s, f) => C(x.I(s), y, s, f)},
 
-            {new CubeFaceNeighbours(CubeFace.Down, CubeFace.Right), (x, y, s) => C(0, y.I(s), s)},
-            {new CubeFaceNeighbours(CubeFace.Down, CubeFace.Forward), (x, y, s) => C(x.I(s), y, s)},
-            {new CubeFaceNeighbours(CubeFace.Down, CubeFace.Left), (x, y, s) => C(x, y, s)},
-            {new CubeFaceNeighbours(CubeFace.Down, CubeFace.Back), (x, y, s) => C(x, y, s)},
-            
-            {new CubeFaceNeighbours(CubeFace.Forward, CubeFace.Left), (x, y, s) => C(y.I(s), x, s)},
-            {new CubeFaceNeighbours(CubeFace.Left, CubeFace.Forward), (x, y, s) => C(y.I(s), x, s)},
+            {new CubeFaceNeighbours(CubeFace.Down, CubeFace.Right, true), (x, y, s, f) => C(0, y.I(s), s, f)},
+            {new CubeFaceNeighbours(CubeFace.Down, CubeFace.Forward, true), (x, y, s, f) => C(x.I(s), y, s, f)},
+            {new CubeFaceNeighbours(CubeFace.Down, CubeFace.Left, true), (x, y, s, f) => C(x, y, s, f)},
+            {new CubeFaceNeighbours(CubeFace.Down, CubeFace.Back, true), (x, y, s, f) => C(x, y, s, f)},
+
+            {new CubeFaceNeighbours(CubeFace.Forward, CubeFace.Right, true), (x, y, s, f) => C(y, x, s, f)},
+            {new CubeFaceNeighbours(CubeFace.Forward, CubeFace.Left, false), (x, y, s, f) => C(y.I(s), 0, s, f)},
+            {new CubeFaceNeighbours(CubeFace.Left, CubeFace.Forward, false), (x, y, s, f) => C(0, x.I(s), s, f)},
+
+            {new CubeFaceNeighbours(CubeFace.Back, CubeFace.Left, true), (x, y, s, f) => C(y, x, s, f)},
+            {new CubeFaceNeighbours(CubeFace.Back, CubeFace.Right, false), (x, y, s, f) => C(y.I(s), 0, s, f)},
+            {new CubeFaceNeighbours(CubeFace.Right, CubeFace.Back, false), (x, y, s, f) => C(0, x.I(s), s, f)},
         };
 
         ///invert
         private static int I(this short xOrY, int s)
         {
-            return (s - 1) - xOrY;
+            return (s - 1) - (xOrY % s);
         }
-        private static int C(int x, int y, int s)
+        private static int C(int x, int y, int s, CubeFace f)
         {
-            return C((short)x, (short)y, s);
+            return C((short)x, (short)y, s, f);
         }
 
         ///combines x and y to a position by applying s
-        private static int C(short x, short y, int s)
+        private static int C(short x, short y, int s, CubeFace f)
         {
-            return Position.Combine((short)(x * s), y);
+            return Position.Combine((short)((x % s) + (int)f * s), y);
         }
 
         ///returns position as combined-int
         public static int CalcNeighbourField(Position pos, CubeFace neighbourFace, int gridSize)
         {
-            var n = new CubeFaceNeighbours(pos.face, neighbourFace);
-            // var reversed = n.IsReversed;
-            return neighbourConverters[n](
-                pos.y, pos.x,
-                // reversed ? pos.x : pos.y,
-                gridSize);
+
+            try
+            {
+                var n = new CubeFaceNeighbours(pos.face, neighbourFace, null);
+                var fun = neighbourConverters.ContainsKey(n) ? neighbourConverters[n] : neighbourConverters[new CubeFaceNeighbours(neighbourFace, pos.face, null)];
+                var neighbourField = fun(
+                    (short)(pos.x % gridSize), pos.y,
+                    gridSize,
+                    neighbourFace);
+
+                short x, y; Position.Decombine(neighbourField, out x, out y);
+                // Debug.Log("CalcNeighbourField " + pos + " <-> " + new Position(x, y, neighbourFace, (short)gridSize));
+
+                return neighbourField;
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                return 0;
+            }
         }
 
         private struct CubeFaceNeighbours
@@ -52,12 +72,16 @@ namespace Assets.Systems.Pathfinding
             public readonly CubeFace faceA;
             public readonly CubeFace faceB;
 
+            public readonly bool? bidirectional;
+
             public bool IsReversed { get { return GetHashCode() != ((int)faceA << 16) + (int)faceB; } }
 
-            public CubeFaceNeighbours(CubeFace a, CubeFace b)
+            public CubeFaceNeighbours(CubeFace a, CubeFace b, bool? bidirectional)
             {
+                // Debug.Log(a + (bidirectional.HasValue && bidirectional.Value ? "<->" : "-->") + b);
                 faceA = a;
                 faceB = b;
+                this.bidirectional = bidirectional;
             }
 
             public bool Has(CubeFace face)
@@ -72,6 +96,18 @@ namespace Assets.Systems.Pathfinding
                     return false;
                 }
 
+                var other = (CubeFaceNeighbours)obj;
+
+                if (
+                    (!bidirectional.HasValue || bidirectional.HasValue && bidirectional.Value)
+                    && (!other.bidirectional.HasValue || other.bidirectional.HasValue && other.bidirectional.Value)
+                    && other.Has(faceA) && other.Has(faceB)
+                )
+                {
+                    return true;
+                }
+
+                if (obj.GetHashCode() != this.GetHashCode()) Debug.Log("(" + this + ") != (" + other + ")");
                 return obj.GetHashCode() == this.GetHashCode();
             }
 
@@ -79,7 +115,14 @@ namespace Assets.Systems.Pathfinding
             {
                 var a = (int)faceA;
                 var b = (int)faceB;
-                return Math.Min(a, b) << 16 + Math.Max(a, b);
+                if (bidirectional.HasValue && bidirectional.Value)
+                    return ((Math.Min(a, b) + 1) << 16) + Math.Max(a, b);
+                return ((a + 1) << 16) + b;
+            }
+
+            public override string ToString()
+            {
+                return faceA + "<->" + faceB;
             }
         }
     }
