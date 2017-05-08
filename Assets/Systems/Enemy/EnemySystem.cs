@@ -1,5 +1,6 @@
 ﻿using System;
 using Assets.SystemBase;
+using Assets.Systems.Pathfinding;
 using Assets.Systems.PlayerMovement;
 using Assets.Utils;
 using UniRx;
@@ -26,23 +27,18 @@ namespace Assets.Systems.Enemy
 
         public override void Register(EnemyComponent component)
         {
-            component.UpdateAsObservable()
-                .Subscribe(_=> UpdateEnemy(component))
-                .AddTo(component);
+            var mover = component.GetComponent<CanMoveOnPathComponent>();
+            _player
+            .GetComponent<TrackPositionComponent>()
+            .CurrentPosition
+            .Subscribe(pos => {
+                mover.Destination.Value = pos;
+            })
+            .AddTo(component);
 
             component.OnTriggerStayAsObservable()
                 .Subscribe(coll=>ShootForPlayer(coll, component))
                 .AddTo(component);
-        }
-
-        private void UpdateEnemy(EnemyComponent enemy)
-        {
-            MoveEnemy(enemy);
-        }
-
-        private void MoveEnemy(EnemyComponent enemy)
-        {
-            enemy.GetComponent<Rigidbody>().AddForce(enemy.DirectionToMove);
         }
 
         private void ShootForPlayer(Collider coll, EnemyComponent enemy)

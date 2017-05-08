@@ -36,7 +36,8 @@ namespace Assets.Systems.Pathfinding
         public bool renderGrid = false;
         public CubeFace[] showGrid = new CubeFace[0];
         public bool showNeighbourMesh = true;
-        [Range(0.1f, 5f)]
+
+        [Range(0.000000001f, 5f)]
         public float neighbourLineLength = 1f;
         public bool recalculateLabelOffset = false;
 
@@ -57,7 +58,7 @@ namespace Assets.Systems.Pathfinding
             .Subscribe(RecalculateGrid).AddTo(this);
         }
 
-        private List<Position> lastPath;
+        private List<List<Position>> lastPaths = new List<List<Position>>();
         public List<Position> FindPath(Position from, Position to)
         {
             Dictionary<Position, Node> cache = new Dictionary<Position, Node>();
@@ -68,12 +69,74 @@ namespace Assets.Systems.Pathfinding
 
             var astar = new AStar(cache[from], cache[to]);
             astar.Run();
-            return lastPath = astar.GetPath().Select(x => ((Node)x).pos).ToList();
+            var l = astar.GetPath().Select(x => ((Node)x).pos).ToList();
+            lastPaths.Add(l);
+            while (lastPaths.Count > 1)
+            {
+                lastPaths.RemoveAt(0);
+            }
+            return l;
         }
 
         public Position GetPosition(Vector3 worldPosition)
         {
             Position pos = null;
+        //     CubeFace nearestFace = CubeFace.Up;
+        //     float nearestValue = (worldPosition - CubeFace.Up.ToUnitVector()).sqrMagnitude;
+        //     float temp = 0;
+
+        //     if (nearestValue > (temp = (worldPosition - CubeFace.Down.ToUnitVector()).sqrMagnitude))
+        //     {
+        //         nearestFace = CubeFace.Down;
+        //         nearestValue = temp;
+        //     }
+        //     if (nearestValue > (temp = (worldPosition - CubeFace.Back.ToUnitVector()).sqrMagnitude))
+        //     {
+        //         nearestFace = CubeFace.Back;
+        //         nearestValue = temp;
+        //     }
+        //     if (nearestValue > (temp = (worldPosition - CubeFace.Forward.ToUnitVector()).sqrMagnitude))
+        //     {
+        //         nearestFace = CubeFace.Forward;
+        //         nearestValue = temp;
+        //     }
+        //     if (nearestValue > (temp = (worldPosition - CubeFace.Left.ToUnitVector()).sqrMagnitude))
+        //     {
+        //         nearestFace = CubeFace.Left;
+        //         nearestValue = temp;
+        //     }
+        //     if (nearestValue > (temp = (worldPosition - CubeFace.Right.ToUnitVector()).sqrMagnitude))
+        //     {
+        //         nearestFace = CubeFace.Right;
+        //         nearestValue = temp;
+        //     }
+
+        //     var center = offset + transform.position + nearestFace.ToUnitVector() * extend.Value / 2f;
+        //     var upperLeft = center
+        //     + nearestFace.ToUpperLeftUnitVector() * (Mathf.Sqrt(extend.Value * extend.Value + extend.Value * extend.Value) / 2f) // upper left
+        //     + nearestFace.ToUpperLeftUnitVector() * (-Mathf.Sqrt(fieldSize * fieldSize + fieldSize * fieldSize) / 4f) // center field
+        //     ;
+
+        //     var fieldDirection = -nearestFace.ToUpperLeftUnitVector() * (Mathf.Sqrt(fieldSize * fieldSize + fieldSize * fieldSize) / 2f);
+
+        //     var start = (short)((int)nearestFace * size);
+        //     for (short x = start; x < start + size; x++)
+        //     {
+        //         for (short y = 0; y < size; y++)
+        //         {
+        //             var nX = x - start;
+        //             var nY = y;
+
+        //             var fieldOffset = Vector3.zero;
+        //             if (Mathf.Approximately(fieldDirection.y, 0f))
+        //                 fieldOffset = new Vector3(fieldDirection.x * nX, 0f, fieldDirection.z * nY);
+        //             if (Mathf.Approximately(fieldDirection.x, 0f))
+        //                 fieldOffset = new Vector3(0f, fieldDirection.y * nX, fieldDirection.z * nY);
+        //             if (Mathf.Approximately(fieldDirection.z, 0f))
+        //                 fieldOffset = new Vector3(fieldDirection.x * nX, fieldDirection.y * nY, 0f);
+        //         }
+        //     }
+
             return grid.Aggregate(pos, (p, n) => (pos == null) ? n.Key :
                 (grid[p] - worldPosition).sqrMagnitude < (grid[n.Key] - worldPosition).sqrMagnitude ? p : n.Key);
         }
@@ -83,16 +146,60 @@ namespace Assets.Systems.Pathfinding
             return grid.Keys.First(x => x.Combined == combined);
         }
 
-        private Dictionary<Position, Vector3> lastVectorField;
-        public Dictionary<Position, Vector3> GetVectorField(Position from, Position to)
+        private readonly Dictionary<Position, Dictionary<Position, Vector3>> flowFields = new Dictionary<Position, Dictionary<Position, Vector3>>();
+
+        private Dictionary<Position, int> CreateDijkstraGrid(Position start, int maxDistance)
         {
-            var vectorField = new Dictionary<Position, Vector3>();
+            var dg = new Dictionary<Position, int>();
+            SetValueForPosition(start, 0, dg, maxDistance);
+            return dg;
+        }
 
-            foreach (var p in grid)
+        private void SetValueForPosition(Position p, int d, Dictionary<Position, int> dg, int maxDistance)
+        {
+            if (dg.ContainsKey(p))
             {
-                vectorField.Add(p.Key, (grid[p.Key.neighbours.Where(x => x != null).First()] - p.Value).normalized);
+                var v = dg[p];
+                if (d <= maxDistance && d < v)
+                {
+                    dg[p] = d;
+                    foreach (var n in p.neighbours)
+                    {
+                        if (n != null && !n.blocked) SetValueForPosition(n, d + 1, dg, maxDistance);
+                    }
+                }
             }
+            else if (d <= maxDistance)
+            {
+                dg.Add(p, d);
+                foreach (var n in p.neighbours)
+                {
+                    if (n != null && !n.blocked) SetValueForPosition(n, d + 1, dg, maxDistance);
+                }
+            }
+        }
 
+        private Dictionary<Position, Vector3> lastVectorField;
+        public Dictionary<Position, Vector3> GetVectorField(Position from, Position to, int maxDistance = 20)
+        {
+            Dictionary<Position, Vector3> vectorField;
+            if (!flowFields.TryGetValue(to, out vectorField))
+            {
+                vectorField = new Dictionary<Position, Vector3>();
+                var dijkstraGrid = CreateDijkstraGrid(to, maxDistance);
+
+                foreach (var p in dijkstraGrid)
+                {
+                    vectorField.Add(p.Key,
+                         grid[
+                            p.Key.neighbours
+                                .Where(n => n != null && !p.Key.blocked && dijkstraGrid.ContainsKey(n))
+                                .Aggregate((px, minNeighbour) => dijkstraGrid[px] < dijkstraGrid[minNeighbour] ? px : minNeighbour)
+                        ] - grid[p.Key]
+                    );
+                }
+                flowFields.Add(to, vectorField);
+            }
             return lastVectorField = vectorField;
         }
 
@@ -102,7 +209,7 @@ namespace Assets.Systems.Pathfinding
             {
                 var startTime = DateTime.Now;
                 gridCalculating.Value = true;
-                offset = Vector3.up * extend / 2f;
+                //offset = Vector3.up * 5; // extend / 2f; //sometimes its 5 and sometimes the other stuff. dunno why
                 faceSize = (extend) * 2f;
                 fieldSize = faceSize / size;
                 if (recalculateLabelOffset) labelOffset = new Vector3(faceSize / 3, 0, -faceSize / 12);
@@ -234,7 +341,7 @@ namespace Assets.Systems.Pathfinding
 
         private void AddCubeFacePositions(CubeFace face)
         {
-            var center = transform.position + face.ToUnitVector() * extend.Value / 2f + Vector3.up * extend.Value / 2f;
+            var center = offset + transform.position + face.ToUnitVector() * extend.Value / 2f;
             var upperLeft = center
             + face.ToUpperLeftUnitVector() * (Mathf.Sqrt(extend.Value * extend.Value + extend.Value * extend.Value) / 2f) // upper left
             + face.ToUpperLeftUnitVector() * (-Mathf.Sqrt(fieldSize * fieldSize + fieldSize * fieldSize) / 4f) // center field
@@ -259,6 +366,10 @@ namespace Assets.Systems.Pathfinding
                         fieldOffset = new Vector3(fieldDirection.x * nX, fieldDirection.y * nY, 0f);
 
                     var pos = new Position(x, y, size);
+
+                    //TODO: for testing purposes
+                    pos.blocked = Mathf.PerlinNoise(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f)) < 0.3f;
+
                     grid.Add(pos, upperLeft + fieldOffset);
                     gridLUT.Add(pos.Combined, pos);
                 }
@@ -270,21 +381,24 @@ namespace Assets.Systems.Pathfinding
             DrawGizmos();
         }
 
-        private void DrawField(Position p, Vector3 v)
+        public void DrawField(Position p, Vector3 v, bool blocker = false)
         {
             switch (p.face)
             {
                 case CubeFace.Up:
                 case CubeFace.Down:
-                    Gizmos.DrawWireCube(v + p.face.ToUnitVector() * padding / 2f, new Vector3(fieldSize / 2f, padding, fieldSize / 2f));
+                    if (blocker) Gizmos.DrawCube(v + p.face.ToUnitVector() * padding / 2f, new Vector3(fieldSize / 2f, padding, fieldSize / 2f) * 0.9f);
+                    else Gizmos.DrawCube(v + p.face.ToUnitVector() * padding / 2f, new Vector3(fieldSize / 2f, padding, fieldSize / 2f));
                     break;
                 case CubeFace.Left:
                 case CubeFace.Right:
-                    Gizmos.DrawWireCube(v + p.face.ToUnitVector() * padding / 2f, new Vector3(padding, fieldSize / 2f, fieldSize / 2f));
+                    if (blocker) Gizmos.DrawCube(v + p.face.ToUnitVector() * padding / 2f, new Vector3(padding, fieldSize / 2f, fieldSize / 2f) * 0.9f);
+                    else Gizmos.DrawCube(v + p.face.ToUnitVector() * padding / 2f, new Vector3(padding, fieldSize / 2f, fieldSize / 2f));
                     break;
                 case CubeFace.Forward:
                 case CubeFace.Back:
-                    Gizmos.DrawWireCube(v + p.face.ToUnitVector() * padding / 2f, new Vector3(fieldSize / 2f, fieldSize / 2f, padding));
+                    if (blocker) Gizmos.DrawCube(v + p.face.ToUnitVector() * padding / 2f, new Vector3(fieldSize / 2f, fieldSize / 2f, padding) * 0.9f);
+                    else Gizmos.DrawCube(v + p.face.ToUnitVector() * padding / 2f, new Vector3(fieldSize / 2f, fieldSize / 2f, padding));
                     break;
             }
         }
@@ -294,51 +408,62 @@ namespace Assets.Systems.Pathfinding
             Gizmos.color = new Color(1f, 1f, 1f, 1f);
             Gizmos.DrawWireCube(transform.position + offset, new Vector3(extend.Value + padding, extend.Value + padding, extend.Value + padding));
 
-            var gridColor = new Color(1f, 0f, 0f, 1f);
+            var gridColor = new Color(0f, 0f, 0f, 1f);
+            var blockedColor = new Color(1f, 0f, 0f, 1f);
             var navColor = new Color(0f, 1f, 0f, 1f);
-            var vectorColor = new Color(0f, 0f, 1f, 1f);
+            var vectorColor = new Color(0f, 1f, 1f, 1f);
             var lastPathColor = new Color(0f, 1f, 0f, 1f);
 
-            foreach (var g in grid)
-            {
-                if (lastPath != null)
+            if (showGrid.Length > 0)
+                foreach (var g in grid)
                 {
-                    Gizmos.color = lastPathColor;
-                    foreach (var v in lastPath)
+
+
+                    //Gizmos.DrawWireCube(g.Value + Vector3.up * padding / 2f, new Vector3(fieldSize / 2f, padding, fieldSize / 2f));
+                    if (!showGrid.Contains(g.Key.face)) continue;
+
+                    if (renderGrid)
+                    {
+                        Gizmos.color = blockedColor;
+                        if (g.Key.blocked)
+                        {
+                            DrawField(g.Key, g.Value, true);
+                        }
+                    }
+
+                    if (showNeighbourMesh)
+                    {
+                        Gizmos.color = navColor;
+                        foreach (var n in g.Key.neighbours)
+                        {
+                            if (n != null)
+                                Gizmos.DrawLine(g.Value, g.Value + ((grid[n] - g.Value).normalized * neighbourLineLength));
+                        }
+                    }
+                }
+
+            if (lastPaths.Count > 0)
+            {
+                Gizmos.color = lastPathColor;
+                foreach (var p in lastPaths)
+                {
+                    foreach (var v in p)
                     {
                         var pos = grid[v];
                         DrawField(v, pos);
                     }
                 }
+            }
 
-                //Gizmos.DrawWireCube(g.Value + Vector3.up * padding / 2f, new Vector3(fieldSize / 2f, padding, fieldSize / 2f));
-                if (!showGrid.Contains(g.Key.face)) continue;
-
-                if (renderGrid)
+            if (lastVectorField != null)
+            // if (false)
+            {
+                Gizmos.color = vectorColor;
+                foreach (var v in lastVectorField)
                 {
-                    Gizmos.color = gridColor;
-                    DrawField(g.Key, g.Value);
-                }
-
-                // if (lastVectorField != null)
-                if (false)
-                {
-                    Gizmos.color = vectorColor;
-                    foreach (var v in lastVectorField)
-                    {
-                        var pos = grid[v.Key];
-                        Gizmos.DrawLine(pos, pos + v.Value);
-                    }
-                }
-
-                if (showNeighbourMesh)
-                {
-                    Gizmos.color = navColor;
-                    foreach (var n in g.Key.neighbours)
-                    {
-                        if (n != null)
-                            Gizmos.DrawLine(g.Value, g.Value + (grid[n] - g.Value).normalized * neighbourLineLength);
-                    }
+                    var pos = grid[v.Key];
+                    // Gizmos.DrawRay(new Ray(pos, v.Value.normalized));
+                    Gizmos.DrawLine(pos, pos + v.Value.normalized * neighbourLineLength);
                 }
             }
         }

@@ -1,12 +1,13 @@
 ﻿using Assets.SystemBase;
+using Assets.Systems.Pathfinding;
 using UnityEngine;
 
 namespace Assets.Systems.Enemy
 {
     [RequireComponent(typeof(Rigidbody))]
+    [RequireComponent(typeof(CanMoveOnPathComponent))]
     public class EnemyComponent : GameComponent
     {
-        public Vector3 DirectionToMove;
         public GameObject BulletSpawn;
         public float BulletTimer { get; set; }
     }

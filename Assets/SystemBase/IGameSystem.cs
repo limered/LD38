@@ -39,7 +39,7 @@ namespace Assets.SystemBase
                 {
                     if (m.Name == "Register" && m.GetParameters().Length == 1)
                     {
-                        Debug.Log(GetType().Name + ": found Register(" + m.GetParameters()[0].ParameterType.Name + ")");
+                        //Debug.Log(GetType().Name + ": found Register(" + m.GetParameters()[0].ParameterType.Name + ")");
                         // ReSharper disable once AccessToForEachVariableInClosure
                         _registerMethods.Add(m.GetParameters()[0].ParameterType, c => m.Invoke(this, new object[] { c }));
                     }

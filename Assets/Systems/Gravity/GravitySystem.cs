@@ -1,4 +1,5 @@
 ﻿using Assets.SystemBase;
+using Assets.Systems.Pathfinding;
 using Assets.Utils;
 using UniRx;
 using UniRx.Triggers;
@@ -6,7 +7,7 @@ using UnityEngine;
 
 namespace Assets.Systems.Gravity
 {
-    public class GravitySystem : GameSystem<GravityComponent, RotationTrigger>
+    public class GravitySystem : GameSystem<GravityComponent>
     {
         private float _gravityStrength;
         public override int Priority { get { return 3; } }
@@ -18,6 +19,11 @@ namespace Assets.Systems.Gravity
 
         public override void Register(GravityComponent component)
         {
+            component.GetComponent<TrackPositionComponent>().CurrentPosition
+            .Where(x => x != null)
+            .Subscribe(x => component.CurrentFace = x.face)
+            .AddTo(component);
+
             var collider = component.GetComponent<Collider>();
             if (!collider)
             {
@@ -32,43 +38,10 @@ namespace Assets.Systems.Gravity
 
         private void UpdateGravity(GravityComponent comp)
         {
-            var gravVec = GetGravityVector(comp.CurrentRotation);
+            var gravVec = comp.CurrentFace.Opposite().ToUnitVector();
+            Debug.Log(comp.CurrentFace);
+            Debug.DrawRay(comp.transform.position, gravVec, Color.cyan);
             comp.GetComponent<Rigidbody>().AddForce(gravVec);
-        }
-
-        private Vector3 GetGravityVector(RotationEnum rotation)
-        {
-            switch (rotation)
-            {
-                case RotationEnum.Top:
-                    return Vector3.down * _gravityStrength;
-
-                case RotationEnum.Left:
-                    return Vector3.right * _gravityStrength;
-
-                case RotationEnum.Bottom:
-                    return Vector3.up * _gravityStrength;
-
-                case RotationEnum.Right:
-                    return Vector3.left * _gravityStrength;
-            }
-            return Vector3.down * _gravityStrength;
-        }
-
-        public override void Register(RotationTrigger trigger)
-        {
-            trigger.OnTriggerEnterAsObservable()
-                .Subscribe(coll => OnTriggerHit(trigger, coll))
-                .AddTo(trigger);
-        }
-
-        private void OnTriggerHit(RotationTrigger trigger, Collider collider)
-        {
-            GravityComponent gravityComponent;
-            if (collider.gameObject.TryGetComponent(out gravityComponent))
-            {
-                gravityComponent.CurrentRotation = trigger.RotatesTo;
-            }
         }
     }
 }

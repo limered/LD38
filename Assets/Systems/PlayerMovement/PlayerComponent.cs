@@ -12,5 +12,7 @@ namespace Assets.Systems.PlayerMovement
 
         public GameObject Model;
         public Vector3 Direction { get; set; }
+
+        
     }
 }

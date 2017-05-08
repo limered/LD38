@@ -8,7 +8,11 @@ namespace Assets.SystemBase
         protected void Start()
         {
             RegisterToGame();
+
+            OnStart();
         }
+
+        protected virtual void OnStart(){}
 
         public void RegisterToGame()
         {

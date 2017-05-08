@@ -54,7 +54,7 @@ namespace Assets.SystemBase
 
             RegisterSystem(new EnemySystem());//12
 
-            RegisterSystem(new PathSystem()); // 20
+            RegisterSystem(new CubalPositioningSystem()); // 20
 
             #endregion System Registration
 

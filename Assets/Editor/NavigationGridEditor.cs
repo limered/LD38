@@ -25,7 +25,7 @@ public class NavigationGridEditor : Editor
 
         if (GUILayout.Button("Test Pathfinding"))
         {
-             var amount = 10;
+             var amount = 1;
             Queue<Position> rndPositions = new Queue<Position>();
             Queue<Position> rndPositions2 = new Queue<Position>();
             for(var i=0; i<amount; i++)
@@ -54,10 +54,21 @@ public class NavigationGridEditor : Editor
                 rndPositions.Enqueue(pos1);
                 var pos2 = rndPositions2.Dequeue();
                 rndPositions.Enqueue(pos2);
-                // Debug.Log(pos1 + " " + pos2);
                 grid.FindPath(pos1, pos2);
             }
             Debug.Log("Calculated "+amount+" A* Paths in "+(System.DateTime.Now-startTime).TotalMilliseconds+"ms");
+
+            startTime = System.DateTime.Now;
+            for(var i=0; i<amount; i++)
+            {
+                var pos1 = rndPositions.Dequeue();
+                rndPositions2.Enqueue(pos1);
+                var pos2 = rndPositions.Dequeue();
+                rndPositions2.Enqueue(pos2);
+                var _ = grid.grid[pos1];
+                _ = grid.grid[pos2];
+            }
+            Debug.Log("Fetched "+amount*2+" Position->Vector3 in "+(System.DateTime.Now-startTime).TotalMilliseconds+"ms");
         }
 
     }
@@ -81,11 +92,11 @@ public class NavigationGridEditor : Editor
         coordinateStyle.normal.textColor = Color.red;
         coordinateStyle.fontSize = 10;
 
-        if (grid.showGrid != null && grid.showGrid.Length > 0)
-            foreach (var gf in grid.GridFields)
-            {
-                if (gf.Key != null && grid.renderGrid && grid.showGrid.Contains(gf.Key.face)) Handles.Label(gf.Value, gf.Key.ToString(), coordinateStyle);
-            }
+        // if (grid.showGrid != null && grid.showGrid.Length > 0)
+        //     foreach (var gf in grid.GridFields)
+        //     {
+        //         if (gf.Key != null && grid.renderGrid && grid.showGrid.Contains(gf.Key.face)) Handles.Label(gf.Value, gf.Key.ToString(), coordinateStyle);
+        //     }
     }
 
     private static void DrawFaceString(CubeFace face)
