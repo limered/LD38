@@ -10,9 +10,7 @@ namespace Assets.Systems.Pathfinding
         public bool blocked = false;
         public readonly short x;
         public readonly short y;
-
         public short normalizedX;
-
         public readonly short gridSize;
         public readonly CubeFace face;
         public readonly Position[] neighbours = new Position[8];
@@ -127,7 +125,15 @@ namespace Assets.Systems.Pathfinding
 
         public override string ToString()
         {
-            return "(" +face.ToString().First()+" "+ normalizedX + ", " + y + ")";
+            return "(" + face.ToString().First() + " " + normalizedX + ", " + y + ")";
+        }
+
+        public SimplePosition Simple
+        {
+            get
+            {
+                return new SimplePosition(normalizedX, y, face);
+            }
         }
     }
 
@@ -156,5 +162,49 @@ namespace Assets.Systems.Pathfinding
 
         /// (-1, 1)
         UpperLeft
+    }
+
+    [Serializable]
+    public struct SimplePosition
+    {
+        public short x;
+        public short y;
+        public CubeFace face;
+
+        public SimplePosition(short normalizedX, short y, CubeFace face)
+        {
+            this.x = normalizedX;
+            this.y = y;
+            this.face = face;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null || (obj.GetType() != this.GetType() && obj.GetType() != typeof(Position)))
+            {
+                return false;
+            }
+
+            var simpleOther = obj as SimplePosition?;
+            if (simpleOther.HasValue)
+            {
+                return simpleOther.Value.x == x
+                        && simpleOther.Value.y == y
+                        && simpleOther.Value.face == face;
+            }
+
+            var posOther = obj as Position;
+            if (posOther != null)
+            {
+                return posOther.Combined == Combine(posOther.gridSize);
+            }
+
+            return false;
+        }
+
+        public int Combine(int gridSize)
+        {
+            return Position.Combine((short)(x + gridSize * (int)face), y);
+        }
     }
 }

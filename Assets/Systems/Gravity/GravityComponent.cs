@@ -13,11 +13,20 @@ namespace Assets.Systems.Gravity
 
         void OnDrawGizmosSelected()
         {
-            Gizmos.color = new Color(0f, 1f, 0f, 1f);
-            var pos = GetComponent<TrackPositionComponent>().CurrentPosition;
-            if(pos.HasValue && pos.Value != null){
-                IoC.Resolve<NavigationGrid>().DrawField(pos.Value, IoC.Resolve<NavigationGrid>().grid[pos.Value]);
+            if (Grid != null && Grid.isActiveAndEnabled)
+            {
+                var pos = Grid.GetPosition(transform.position);
+                Vector3 v;
+                if (Grid.grid.TryGetValue(pos, out v))
+                {
+                    Gizmos.color = Color.green;
+                    Grid.DrawField(pos, v, false);
+                }
             }
         }
+
+
+        private NavigationGrid grid;
+        private NavigationGrid Grid { get { return grid ?? (grid = IoC.ResolveOrDefault<NavigationGrid>()); } }
     }
 }

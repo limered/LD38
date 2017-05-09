@@ -9,7 +9,7 @@ namespace Assets.Systems.Pathfinding
     public class CanMoveOnPathComponent : GameComponent
     {
         public readonly SerialDisposable MovingSubscription = new SerialDisposable();
-        public ReactiveProperty<Position> Destination = new ReactiveProperty<Position>();
+        public ReactiveProperty<SimplePosition?> Destination = new ReactiveProperty<SimplePosition?>();
         public ReactiveProperty<List<Position>> CurrentPath = new ReactiveProperty<List<Position>>();
         public Vector3ReactiveProperty CurrentDirection = new Vector3ReactiveProperty();
         public FloatReactiveProperty Speed = new FloatReactiveProperty(10f);

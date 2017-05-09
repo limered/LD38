@@ -29,6 +29,7 @@ namespace Assets.SystemBase
 
         public void RegisterComponent(IGameComponent component)
         {
+            Debug.Log("register component: "+component.GetType());
             List<IGameSystem> systemsToRegisterTo;
             if (!_systemToComponentMapper.TryGetValue(component.GetType(), out systemsToRegisterTo)) return;
 

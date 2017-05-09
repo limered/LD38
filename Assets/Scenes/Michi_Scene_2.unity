@@ -258,6 +258,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef273a1cadb8e459197551dbe053d3cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  simplePosition:
+    x: 0
+    y: 0
+    face: 0
 --- !u!1001 &259961714
 Prefab:
   m_ObjectHideFlags: 0
@@ -331,11 +335,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71e7c8185bb87472284e5a0b3c273607, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  size: 20
+  size: 10
   extend:
     value: 28.18
   padding: 0.2
-  fieldSize: 2.818
+  fieldSize: 5.636
   faceSize: 56.36
   offset: {x: 0, y: 5, z: 0}
   labelOffset: {x: 0, y: 0, z: 0}
@@ -343,8 +347,8 @@ MonoBehaviour:
   labelColor: {r: 1, g: 1, b: 1, a: 1}
   renderGrid: 1
   showGrid: 000000000100000002000000030000000400000005000000
-  showNeighbourMesh: 0
-  neighbourLineLength: 0.12
+  showNeighbourMesh: 1
+  neighbourLineLength: 0.47
   recalculateLabelOffset: 0
 --- !u!1001 &733602177
 Prefab:
@@ -752,6 +756,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef273a1cadb8e459197551dbe053d3cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  simplePosition:
+    x: 0
+    y: 0
+    face: 0
 --- !u!1 &1875326254
 GameObject:
   m_ObjectHideFlags: 0

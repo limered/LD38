@@ -39,7 +39,6 @@ namespace Assets.Systems.Gravity
         private void UpdateGravity(GravityComponent comp)
         {
             var gravVec = comp.CurrentFace.Opposite().ToUnitVector();
-            Debug.Log(comp.CurrentFace);
             Debug.DrawRay(comp.transform.position, gravVec, Color.cyan);
             comp.GetComponent<Rigidbody>().AddForce(gravVec);
         }

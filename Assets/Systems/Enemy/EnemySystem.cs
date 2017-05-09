@@ -27,14 +27,14 @@ namespace Assets.Systems.Enemy
 
         public override void Register(EnemyComponent component)
         {
-            var mover = component.GetComponent<CanMoveOnPathComponent>();
-            _player
-            .GetComponent<TrackPositionComponent>()
-            .CurrentPosition
-            .Subscribe(pos => {
-                mover.Destination.Value = pos;
-            })
-            .AddTo(component);
+            // var mover = component.GetComponent<CanMoveOnPathComponent>();
+            // _player
+            // .GetComponent<TrackPositionComponent>()
+            // .CurrentPosition
+            // .Subscribe(pos => {
+            //     mover.Destination.Value = pos.Simple;
+            // })
+            // .AddTo(component);
 
             component.OnTriggerStayAsObservable()
                 .Subscribe(coll=>ShootForPlayer(coll, component))

@@ -19,7 +19,8 @@ namespace Assets.Systems.Pathfinding
             var tracker = component.GetComponent<TrackPositionComponent>();
 
             component.Destination
-            .Where(x => x != null)
+            .Where(x => x.HasValue)
+            .Select(x => Grid.gridLUT[x.Value.Combine(Grid.size)])
             .Where(x => !tracker.CurrentPosition.HasValue || x != tracker.CurrentPosition.Value)
             .Subscribe(
                 dest =>
@@ -33,7 +34,7 @@ namespace Assets.Systems.Pathfinding
             {
                 component.MovingSubscription.Disposable = component
                     .FixedUpdateAsObservable()
-                    .TakeWhile(_ => tracker.CurrentPosition.HasValue && component.Destination.Value != tracker.CurrentPosition.Value)
+                    .TakeWhile(_ => tracker.CurrentPosition.HasValue && component.Destination.Value.HasValue && !component.Destination.Value.Value.Equals(tracker.CurrentPosition.Value))
                     .Subscribe(_ =>
                     {
                         if (component.CurrentPath.Value == null || component.CurrentPath.Value.Count == 0)
@@ -69,6 +70,7 @@ namespace Assets.Systems.Pathfinding
                 if(pos != component.CurrentPosition.Value)
                 {
                     component.CurrentPosition.Value = pos;
+                    component.simplePosition = pos.Simple;
                 }
             })
             .AddTo(component);

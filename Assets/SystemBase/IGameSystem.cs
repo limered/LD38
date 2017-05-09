@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -34,16 +35,24 @@ namespace Assets.SystemBase
             if (_registerMethods == null)
             {
                 _registerMethods = new Dictionary<Type, Action<IGameComponent>>();
-                MethodInfo[] methods = GetType().GetMethods();
-                foreach (var m in methods)
-                {
-                    if (m.Name == "Register" && m.GetParameters().Length == 1)
-                    {
-                        //Debug.Log(GetType().Name + ": found Register(" + m.GetParameters()[0].ParameterType.Name + ")");
-                        // ReSharper disable once AccessToForEachVariableInClosure
-                        _registerMethods.Add(m.GetParameters()[0].ParameterType, c => m.Invoke(this, new object[] { c }));
-                    }
-                }
+                // MethodInfo[] methods = GetType().GetMethods();
+                // foreach (var m in methods)
+                // {
+                //     if (m.Name == "Register" && m.GetParameters().Length == 1)
+                //     {
+                //         //Debug.Log(GetType().Name + ": found Register(" + m.GetParameters()[0].ParameterType.Name + ")");
+                //         // ReSharper disable once AccessToForEachVariableInClosure
+                //         _registerMethods.Add(m.GetParameters()[0].ParameterType, c => m.Invoke(this, new object[] { c }));
+                //     }
+                // }
+
+                GetType().GetMethods()
+                .Where(x => x.Name == "Register" && x.GetParameters().Length == 1)
+                // .ToDictionary<Type, Action<IGameComponent>>(
+                //     x => x.GetParameters()[0].ParameterType,
+                //     x => (IGameComponent c) => {x.Invoke(this, new object[] { c });});
+                .ToList()
+                .ForEach(x => _registerMethods.Add(x.GetParameters()[0].ParameterType, c => x.Invoke(this, new object[] { c })));
             }
 
             if(_registerMethods.ContainsKey(component.GetType()))

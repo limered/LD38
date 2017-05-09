@@ -41,6 +41,8 @@ namespace Assets.Systems.Pathfinding
         public float neighbourLineLength = 1f;
         public bool recalculateLabelOffset = false;
 
+        private Vector3 drawUpperLeft, drawUpperRight;
+
         private readonly BoolReactiveProperty gridCalculating = new BoolReactiveProperty();
         public IObservable<Unit> OnGridCalculated()
         {
@@ -61,10 +63,23 @@ namespace Assets.Systems.Pathfinding
         private List<List<Position>> lastPaths = new List<List<Position>>();
         public List<Position> FindPath(Position from, Position to)
         {
+            if (from == null) throw new ArgumentNullException("from");
+            if (to == null) throw new ArgumentNullException("to");
+
             Dictionary<Position, Node> cache = new Dictionary<Position, Node>();
             foreach (var p in grid)
             {
                 cache.Add(p.Key, new Node(grid, p.Key, cache));
+            }
+
+            try
+            {
+                var x = cache[from];
+                x = cache[to];
+            }
+            catch
+            {
+                Debug.LogError("from: " + from + "  to:" + to);
             }
 
             var astar = new AStar(cache[from], cache[to]);
@@ -81,69 +96,64 @@ namespace Assets.Systems.Pathfinding
         public Position GetPosition(Vector3 worldPosition)
         {
             Position pos = null;
-        //     CubeFace nearestFace = CubeFace.Up;
-        //     float nearestValue = (worldPosition - CubeFace.Up.ToUnitVector()).sqrMagnitude;
-        //     float temp = 0;
+            CubeFace nearestFace = CubeFace.Up;
+            float nearestValue = (worldPosition - CubeFace.Up.ToUnitVector()).sqrMagnitude;
+            float temp = 0;
+            short x = 0;
+            short y = 0;
 
-        //     if (nearestValue > (temp = (worldPosition - CubeFace.Down.ToUnitVector()).sqrMagnitude))
-        //     {
-        //         nearestFace = CubeFace.Down;
-        //         nearestValue = temp;
-        //     }
-        //     if (nearestValue > (temp = (worldPosition - CubeFace.Back.ToUnitVector()).sqrMagnitude))
-        //     {
-        //         nearestFace = CubeFace.Back;
-        //         nearestValue = temp;
-        //     }
-        //     if (nearestValue > (temp = (worldPosition - CubeFace.Forward.ToUnitVector()).sqrMagnitude))
-        //     {
-        //         nearestFace = CubeFace.Forward;
-        //         nearestValue = temp;
-        //     }
-        //     if (nearestValue > (temp = (worldPosition - CubeFace.Left.ToUnitVector()).sqrMagnitude))
-        //     {
-        //         nearestFace = CubeFace.Left;
-        //         nearestValue = temp;
-        //     }
-        //     if (nearestValue > (temp = (worldPosition - CubeFace.Right.ToUnitVector()).sqrMagnitude))
-        //     {
-        //         nearestFace = CubeFace.Right;
-        //         nearestValue = temp;
-        //     }
+            if (nearestValue > (temp = (worldPosition - CubeFace.Down.ToUnitVector()).sqrMagnitude))
+            {
+                nearestFace = CubeFace.Down;
+                nearestValue = temp;
+            }
+            if (nearestValue > (temp = (worldPosition - CubeFace.Back.ToUnitVector()).sqrMagnitude))
+            {
+                nearestFace = CubeFace.Back;
+                nearestValue = temp;
+            }
+            if (nearestValue > (temp = (worldPosition - CubeFace.Forward.ToUnitVector()).sqrMagnitude))
+            {
+                nearestFace = CubeFace.Forward;
+                nearestValue = temp;
+            }
+            if (nearestValue > (temp = (worldPosition - CubeFace.Left.ToUnitVector()).sqrMagnitude))
+            {
+                nearestFace = CubeFace.Left;
+                nearestValue = temp;
+            }
+            if (nearestValue > (temp = (worldPosition - CubeFace.Right.ToUnitVector()).sqrMagnitude))
+            {
+                nearestFace = CubeFace.Right;
+                nearestValue = temp;
+            }
 
-        //     var center = offset + transform.position + nearestFace.ToUnitVector() * extend.Value / 2f;
-        //     var upperLeft = center
-        //     + nearestFace.ToUpperLeftUnitVector() * (Mathf.Sqrt(extend.Value * extend.Value + extend.Value * extend.Value) / 2f) // upper left
-        //     + nearestFace.ToUpperLeftUnitVector() * (-Mathf.Sqrt(fieldSize * fieldSize + fieldSize * fieldSize) / 4f) // center field
-        //     ;
+            var center = offset + transform.position + nearestFace.ToUnitVector() * extend.Value / 2f;
+            var upperLeft = center
+            + nearestFace.ToUpperLeftUnitVector() * (Mathf.Sqrt(extend.Value * extend.Value + extend.Value * extend.Value) / 2f) // upper left
+            // + nearestFace.ToUpperLeftUnitVector() * (-Mathf.Sqrt(fieldSize * fieldSize + fieldSize * fieldSize) / 4f) // center field
+            ;
+            drawUpperLeft = upperLeft;
 
-        //     var fieldDirection = -nearestFace.ToUpperLeftUnitVector() * (Mathf.Sqrt(fieldSize * fieldSize + fieldSize * fieldSize) / 2f);
+            var upperRight = center
+            - nearestFace.ToUpperLeftUnitVector() * (Mathf.Sqrt(extend.Value * extend.Value + extend.Value * extend.Value) / 2f) // upper left
+            // - nearestFace.ToUpperLeftUnitVector() * (-Mathf.Sqrt(fieldSize * fieldSize + fieldSize * fieldSize) / 4f) // center field
+            ;
+            drawUpperRight = upperRight;
 
-        //     var start = (short)((int)nearestFace * size);
-        //     for (short x = start; x < start + size; x++)
-        //     {
-        //         for (short y = 0; y < size; y++)
-        //         {
-        //             var nX = x - start;
-        //             var nY = y;
+            
 
-        //             var fieldOffset = Vector3.zero;
-        //             if (Mathf.Approximately(fieldDirection.y, 0f))
-        //                 fieldOffset = new Vector3(fieldDirection.x * nX, 0f, fieldDirection.z * nY);
-        //             if (Mathf.Approximately(fieldDirection.x, 0f))
-        //                 fieldOffset = new Vector3(0f, fieldDirection.y * nX, fieldDirection.z * nY);
-        //             if (Mathf.Approximately(fieldDirection.z, 0f))
-        //                 fieldOffset = new Vector3(fieldDirection.x * nX, fieldDirection.y * nY, 0f);
-        //         }
-        //     }
-
-            return grid.Aggregate(pos, (p, n) => (pos == null) ? n.Key :
-                (grid[p] - worldPosition).sqrMagnitude < (grid[n.Key] - worldPosition).sqrMagnitude ? p : n.Key);
+            return new Position (
+                (short)Mathf.Max(0, Mathf.Min(size, x)),
+                (short)Mathf.Max(0, Mathf.Min(size, y)),
+                CubeFace.Up,
+                size
+            );
         }
 
         public Position GetPosition(int combined)
         {
-            return grid.Keys.First(x => x.Combined == combined);
+            return gridLUT[combined];
         }
 
         private readonly Dictionary<Position, Dictionary<Position, Vector3>> flowFields = new Dictionary<Position, Dictionary<Position, Vector3>>();
@@ -316,19 +326,7 @@ namespace Assets.Systems.Pathfinding
                         }
                         //
 
-
-                        // try
-                        // {
                         p.SetNeighbour(gridLUT[neighbour], n.Key);
-                        // }
-                        // catch
-                        // {
-                        //     short nX,nY;
-                        //     Position.Decombine(neighbour, out nX, out nY);
-                        //     nX %= size;
-                        //     var nF = (CubeFace)(nX/size);
-                        //     Debug.LogError("position ("+nF.ToString().First()+" "+nX+", "+nY+") not found");
-                        // }
                     }
                     else
                     {
@@ -376,7 +374,7 @@ namespace Assets.Systems.Pathfinding
             }
         }
 
-        void OnDrawGizmosSelected()
+        void OnDrawGizmos()
         {
             DrawGizmos();
         }
@@ -405,6 +403,9 @@ namespace Assets.Systems.Pathfinding
 
         private void DrawGizmos()
         {
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawLine(drawUpperLeft, drawUpperRight);
+
             Gizmos.color = new Color(1f, 1f, 1f, 1f);
             Gizmos.DrawWireCube(transform.position + offset, new Vector3(extend.Value + padding, extend.Value + padding, extend.Value + padding));
 
@@ -417,8 +418,6 @@ namespace Assets.Systems.Pathfinding
             if (showGrid.Length > 0)
                 foreach (var g in grid)
                 {
-
-
                     //Gizmos.DrawWireCube(g.Value + Vector3.up * padding / 2f, new Vector3(fieldSize / 2f, padding, fieldSize / 2f));
                     if (!showGrid.Contains(g.Key.face)) continue;
 
