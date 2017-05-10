@@ -146,7 +146,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &184290379
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -347,7 +347,7 @@ MonoBehaviour:
   labelColor: {r: 1, g: 1, b: 1, a: 1}
   renderGrid: 1
   showGrid: 000000000100000002000000030000000400000005000000
-  showNeighbourMesh: 1
+  showNeighbourMesh: 0
   neighbourLineLength: 0.47
   recalculateLabelOffset: 0
 --- !u!1001 &733602177
@@ -359,7 +359,7 @@ Prefab:
     m_Modifications:
     - target: {fileID: 4100286038524182, guid: e76762d78f926c3418d182694f5f0131, type: 2}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 17.5
       objectReference: {fileID: 0}
     - target: {fileID: 4100286038524182, guid: e76762d78f926c3418d182694f5f0131, type: 2}
       propertyPath: m_LocalPosition.y
@@ -367,7 +367,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4100286038524182, guid: e76762d78f926c3418d182694f5f0131, type: 2}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -70.8
       objectReference: {fileID: 0}
     - target: {fileID: 4100286038524182, guid: e76762d78f926c3418d182694f5f0131, type: 2}
       propertyPath: m_LocalRotation.x

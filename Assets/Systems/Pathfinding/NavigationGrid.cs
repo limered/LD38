@@ -41,8 +41,6 @@ namespace Assets.Systems.Pathfinding
         public float neighbourLineLength = 1f;
         public bool recalculateLabelOffset = false;
 
-        private Vector3 drawUpperLeft, drawUpperRight;
-
         private readonly BoolReactiveProperty gridCalculating = new BoolReactiveProperty();
         public IObservable<Unit> OnGridCalculated()
         {
@@ -93,6 +91,8 @@ namespace Assets.Systems.Pathfinding
             return l;
         }
 
+
+        private Vector3 drawUpperLeft, drawEX, drawEY;
         public Position GetPosition(Vector3 worldPosition)
         {
             Position pos = null;
@@ -131,19 +131,48 @@ namespace Assets.Systems.Pathfinding
             var center = offset + transform.position + nearestFace.ToUnitVector() * extend.Value / 2f;
             var upperLeft = center
             + nearestFace.ToUpperLeftUnitVector() * (Mathf.Sqrt(extend.Value * extend.Value + extend.Value * extend.Value) / 2f) // upper left
-            // + nearestFace.ToUpperLeftUnitVector() * (-Mathf.Sqrt(fieldSize * fieldSize + fieldSize * fieldSize) / 4f) // center field
             ;
             drawUpperLeft = upperLeft;
 
             var upperRight = center
             - nearestFace.ToUpperLeftUnitVector() * (Mathf.Sqrt(extend.Value * extend.Value + extend.Value * extend.Value) / 2f) // upper left
-            // - nearestFace.ToUpperLeftUnitVector() * (-Mathf.Sqrt(fieldSize * fieldSize + fieldSize * fieldSize) / 4f) // center field
             ;
-            drawUpperRight = upperRight;
+            // drawUpperRight = upperRight;
 
+
+            var fieldDirection = -nearestFace.ToUpperLeftUnitVector() * (Mathf.Sqrt(fieldSize * fieldSize + fieldSize * fieldSize) / 2f);
+
+            var eX = Vector2.zero;
+            var eY = Vector2.zero;
+
+            if (Mathf.Approximately(fieldDirection.y, 0f))
+            {
+                eX = new Vector2(Math.Sign(fieldDirection.x), 0);
+                eY = new Vector2(0, Math.Sign(fieldDirection.z));
+            }
+            if (Mathf.Approximately(fieldDirection.x, 0f))
+            {
+                eX = new Vector2(Math.Sign(fieldDirection.y), 0);
+                eY = new Vector2(0, Math.Sign(fieldDirection.z));
+            }
+            if (Mathf.Approximately(fieldDirection.z, 0f))
+            {
+                eX = new Vector2(Math.Sign(fieldDirection.x), 0);
+                eY = new Vector2(0, Math.Sign(fieldDirection.y));
+            }
+
+            drawEX = eX;
+            drawEY = eY;
+
+            //
+            var p = worldPosition - upperLeft;
+            var pE = new Vector2(eX.x * p.x + eX.y * p.y, eY.x * p.x + eY.y * p.y);
+            x = (short)((pE / extend.Value).x * size);
+            y = (short)((pE / extend.Value).y * size);
             
+            Debug.Log("x="+x+"  y="+y);
 
-            return new Position (
+            return new Position(
                 (short)Mathf.Max(0, Mathf.Min(size, x)),
                 (short)Mathf.Max(0, Mathf.Min(size, y)),
                 CubeFace.Up,
@@ -404,7 +433,8 @@ namespace Assets.Systems.Pathfinding
         private void DrawGizmos()
         {
             Gizmos.color = Color.magenta;
-            Gizmos.DrawLine(drawUpperLeft, drawUpperRight);
+            Gizmos.DrawLine(drawUpperLeft, drawUpperLeft + drawEX);
+            Gizmos.DrawLine(drawUpperLeft, drawUpperLeft + drawEY);
 
             Gizmos.color = new Color(1f, 1f, 1f, 1f);
             Gizmos.DrawWireCube(transform.position + offset, new Vector3(extend.Value + padding, extend.Value + padding, extend.Value + padding));
