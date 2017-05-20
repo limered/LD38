@@ -31,4 +31,20 @@ namespace Assets.Utils
             return Mathf.Max(v.x, v.y, v.z);
         }
     }
+
+    public struct RangeValue
+        {
+            public float Min, Max;
+
+            /// inclusive on both sides
+            public float Between
+            {
+                get { return Random.Range(Min, Max); }
+            }
+
+            public float Distance
+            {
+                get { return Mathf.Abs(Max - Min); }
+            }
+        }
 }

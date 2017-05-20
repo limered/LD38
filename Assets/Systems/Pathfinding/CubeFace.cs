@@ -46,6 +46,30 @@ namespace Assets.Systems.Pathfinding
             }
         }
 
+        public static Vector3 ToDirectionVector(this CubeFace face, float angle, bool degrees=true)
+        {
+            var forward = face.ToUpperLeftUnitVector().RemoveComponents(true, false).normalized;
+            return Quaternion.AngleAxis(degrees ? angle * Mathf.Rad2Deg : angle, face.ToUnitVector()) * forward;
+        }
+
+        public static Vector3 RemoveComponents(this Vector3 v, bool removeX, bool removeY)
+        {
+            if(Mathf.Approximately(v.x, 0))
+            {
+                return new Vector3(0f, removeX ? 0f : v.y, removeY ? 0f : v.z);
+            }
+            if(Mathf.Approximately(v.y, 0))
+            {
+                return new Vector3(removeX ? 0f : v.x, 0, removeY ? 0f : v.z);
+            }
+            if(Mathf.Approximately(v.z, 0))
+            {
+                return new Vector3(removeX ? 0f : v.x, removeY ? 0f : v.y, 0f);
+            }
+
+            throw new Exception("wtf oO");
+        }
+
         public static CubeFace ToCubeFace(this Vector3 vector)
         {
             var v = vector.normalized;
@@ -73,21 +97,6 @@ namespace Assets.Systems.Pathfinding
 
             throw new Exception("should never happen :)");
         }
-
-        // public static CubeFace[] NeighbourFaces(this CubeFace face)
-        // {
-        //     switch (face)
-        //     {
-        //         case CubeFace.Up: return new []{ CubeFace.Forward, CubeFace.Right, CubeFace.Back, CubeFace.Left };
-        //         case CubeFace.Right: return new []{ CubeFace.Up, CubeFace.Forward, CubeFace.Down, CubeFace.Back };
-        //         case CubeFace.Forward: return new []{ CubeFace.Up, CubeFace.Left, CubeFace.Down, CubeFace.Right };
-        //         case CubeFace.Down: return new []{ CubeFace., CubeFace., CubeFace., CubeFace. };
-        //         // case CubeFace.Left: return new []{ CubeFace., CubeFace., CubeFace., CubeFace. };
-        //         // case CubeFace.Back: return new []{ CubeFace., CubeFace., CubeFace., CubeFace. };
-        //     }
-
-        //     throw new Exception("wtf oO");
-        // }
 
         public static CubeFace XOverflow(this CubeFace face)
         {

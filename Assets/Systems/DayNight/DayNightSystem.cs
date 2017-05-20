@@ -52,7 +52,7 @@ namespace Assets.Systems.DayNight
         private void UpdateCelestialBody(Component go, Vector3 pos, string lightName)
         {
             go.transform.position = pos;
-            var light = go.transform.FindChild(lightName);
+            var light = go.transform.Find(lightName);
             if (light)
             {
                 light.forward = -go.transform.position;

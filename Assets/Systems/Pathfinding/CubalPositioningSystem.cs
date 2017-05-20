@@ -66,7 +66,7 @@ namespace Assets.Systems.Pathfinding
             component.UpdateAsObservable()
             .Sample(TimeSpan.FromMilliseconds(100))
             .Subscribe(x => {
-                var pos = Grid.GetPosition(component.transform.position);
+                var pos = Grid.GetPosition(component.transform.position, component.CurrentPosition.HasValue && component.CurrentPosition.Value!=null ? component.CurrentPosition.Value.face : (CubeFace?)null);
                 if(pos != component.CurrentPosition.Value)
                 {
                     component.CurrentPosition.Value = pos;

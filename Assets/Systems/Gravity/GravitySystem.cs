@@ -1,4 +1,5 @@
-﻿using Assets.SystemBase;
+﻿using System;
+using Assets.SystemBase;
 using Assets.Systems.Pathfinding;
 using Assets.Utils;
 using UniRx;
@@ -7,14 +8,15 @@ using UnityEngine;
 
 namespace Assets.Systems.Gravity
 {
-    public class GravitySystem : GameSystem<GravityComponent>
+    public class GravitySystem : GameSystem<GravityConfigComponent, GravityComponent, HoverComponent>
     {
-        private float _gravityStrength;
         public override int Priority { get { return 3; } }
 
-        public override void Init()
+        private GravityConfigComponent _config;
+
+        public override void Register(GravityConfigComponent component)
         {
-            _gravityStrength = Physics.gravity.magnitude;
+            _config = component;
         }
 
         public override void Register(GravityComponent component)
@@ -24,12 +26,6 @@ namespace Assets.Systems.Gravity
             .Subscribe(x => component.CurrentFace = x.face)
             .AddTo(component);
 
-            var collider = component.GetComponent<Collider>();
-            if (!collider)
-            {
-                collider = component.gameObject.AddComponent<BoxCollider>();
-                collider.isTrigger = true;
-            }
             component.GetComponent<Rigidbody>().useGravity = false;
             component.UpdateAsObservable()
                 .Subscribe(_ => UpdateGravity(component))
@@ -38,9 +34,15 @@ namespace Assets.Systems.Gravity
 
         private void UpdateGravity(GravityComponent comp)
         {
-            var gravVec = comp.CurrentFace.Opposite().ToUnitVector();
+            var gravVec = comp.CurrentFace.Opposite().ToUnitVector() * _config.GravityForce;
             Debug.DrawRay(comp.transform.position, gravVec, Color.cyan);
             comp.GetComponent<Rigidbody>().AddForce(gravVec);
+        }
+
+        public override void Register(HoverComponent component)
+        {
+            component.FixedUpdateAsObservable()
+            .Where(_ => component.Height)
         }
     }
 }

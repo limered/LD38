@@ -97,15 +97,18 @@ namespace Assets.Systems.Pathfinding
         }
 
         private Vector3 drawUpperLeft, drawEX, drawEY;
-        public Position GetPosition(Vector3 worldPosition)
+        public Position GetPosition(Vector3 worldPosition, CubeFace? lastFace = null)
         {
             Position pos = null;
             CubeFace nearestFace = CubeFace.Up;
             float nearestValue = GetNearestValue(worldPosition, CubeFace.Up);
             float temp = 0;
-            short x = 0;
-            short y = 0;
 
+            if (nearestValue > (temp = GetNearestValue(worldPosition, CubeFace.Up)))
+            {
+                nearestFace = CubeFace.Up;
+                nearestValue = temp;
+            }
             if (nearestValue > (temp = GetNearestValue(worldPosition, CubeFace.Down)))
             {
                 nearestFace = CubeFace.Down;
@@ -132,19 +135,36 @@ namespace Assets.Systems.Pathfinding
                 nearestValue = temp;
             }
 
-            var center = offset + transform.position + nearestFace.ToUnitVector() * extend.Value / 2f;
+            
+            if(!lastFace.HasValue || lastFace.HasValue && nearestFace == lastFace.Value){
+                short x, y;
+                return GetPositionOnFace(nearestFace, worldPosition, out x, out y);
+            }
+            else
+            {
+                short lastFaceX, lastFaceY, nearestFaceX, nearestFaceY;
+                var lastFacePos = GetPositionOnFace(lastFace.Value, worldPosition, out lastFaceX, out lastFaceY);
+                var nearestFacePos = GetPositionOnFace(nearestFace, worldPosition, out nearestFaceX, out nearestFaceY);
+
+                if(nearestFaceX >= 0 && nearestFaceX < size && nearestFaceY >= 0 && nearestFaceY < size)
+                    return nearestFacePos;
+                else    
+                    return lastFacePos;
+            }
+        }
+
+        private Position GetPositionOnFace(CubeFace face, Vector3 worldPosition, out short x, out short y){
+            var center = offset + transform.position + face.ToUnitVector() * extend.Value / 2f;
             var upperLeft = center
-            + nearestFace.ToUpperLeftUnitVector() * (Mathf.Sqrt(extend.Value * extend.Value + extend.Value * extend.Value) / 2f) // upper left
+            + face.ToUpperLeftUnitVector() * (Mathf.Sqrt(extend.Value * extend.Value + extend.Value * extend.Value) / 2f) // upper left
             ;
             drawUpperLeft = upperLeft;
 
             var upperRight = center
-            - nearestFace.ToUpperLeftUnitVector() * (Mathf.Sqrt(extend.Value * extend.Value + extend.Value * extend.Value) / 2f) // upper left
+            - face.ToUpperLeftUnitVector() * (Mathf.Sqrt(extend.Value * extend.Value + extend.Value * extend.Value) / 2f) // upper left
             ;
-            // drawUpperRight = upperRight;
-
-
-            var fieldDirection = -nearestFace.ToUpperLeftUnitVector();
+            
+            var fieldDirection = -face.ToUpperLeftUnitVector();
 
             var eX = Vector2.zero;
             var eY = Vector2.zero;
@@ -153,21 +173,18 @@ namespace Assets.Systems.Pathfinding
 
             if (Mathf.Approximately(fieldDirection.y, 0f))
             {
-                Debug.Log("case 1");
                 eX = new Vector2(Math.Sign(fieldDirection.x), 0);
                 eY = new Vector2(0, Math.Sign(fieldDirection.z));
                 p = new Vector2(posOnPlane.x, posOnPlane.z);
             }
             if (Mathf.Approximately(fieldDirection.x, 0f))
             {
-                Debug.Log("case 2");
                 eX = new Vector2(Math.Sign(fieldDirection.y), 0);
                 eY = new Vector2(0, Math.Sign(fieldDirection.z));
                 p = new Vector2(posOnPlane.y, posOnPlane.z);
             }
             if (Mathf.Approximately(fieldDirection.z, 0f))
             {
-                Debug.Log("case 3");
                 eX = new Vector2(Math.Sign(fieldDirection.x), 0);
                 eY = new Vector2(0, Math.Sign(fieldDirection.y));
                 p = new Vector2(posOnPlane.x, posOnPlane.y);
@@ -181,12 +198,12 @@ namespace Assets.Systems.Pathfinding
             x = (short)((pE / extend.Value).x * size);
             y = (short)((pE / extend.Value).y * size);
             
-            // Debug.Log("x="+x+"  y="+y);
+            //Debug.Log("face="+face+"  x="+x+"  y="+y);
 
             return new Position(
                 (short)Mathf.Max(0, Mathf.Min(size, x)),
                 (short)Mathf.Max(0, Mathf.Min(size, y)),
-                nearestFace,
+                face,
                 size
             );
         }
@@ -374,6 +391,11 @@ namespace Assets.Systems.Pathfinding
             }
         }
 
+        public float HeightOnPosition(Vector3 worldPos)
+        {
+            var pos = GetPosition(worldPos);
+        }
+
         private void AddCubeFacePositions(CubeFace face)
         {
             var center = offset + transform.position + face.ToUnitVector() * extend.Value / 2f;
@@ -403,7 +425,7 @@ namespace Assets.Systems.Pathfinding
                     var pos = new Position(x, y, size);
 
                     //TODO: for testing purposes
-                    pos.blocked = Mathf.PerlinNoise(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f)) < 0.3f;
+                    //pos.blocked = Mathf.PerlinNoise(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f)) < 0.3f;
 
                     grid.Add(pos, upperLeft + fieldOffset);
                     gridLUT.Add(pos.Combined, pos);
