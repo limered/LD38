@@ -7,7 +7,7 @@ using Assets.Systems.Enemy;
 using Assets.Systems.Example;
 using Assets.Systems.FightingSystem;
 using Assets.Systems.Gravity;
-using Assets.Systems.PlayerMovement;
+using Assets.Systems.Movement;
 using UnityEngine;
 using UnityEngine.UI;
 using Assets.Systems.Pathfinding;
@@ -56,6 +56,7 @@ namespace Assets.SystemBase
             RegisterSystem(new EnemySystem());//12
 
             RegisterSystem(new CubalPositioningSystem()); // 20
+            RegisterSystem(new NPCMovementSystem()); //21
 
             #endregion System Registration
 

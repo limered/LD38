@@ -7,7 +7,7 @@ using UniRx.Triggers;
 using UnityEngine;
 using Assets.Systems.Pathfinding;
 
-namespace Assets.Systems.PlayerMovement
+namespace Assets.Systems.Movement
 {
     public class PlayerMovementSystem : IGameSystem
     {

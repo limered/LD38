@@ -41,16 +41,22 @@ namespace Assets.Systems.Pathfinding
         public float neighbourLineLength = 1f;
         public bool recalculateLabelOffset = false;
 
-        private readonly BoolReactiveProperty gridCalculating = new BoolReactiveProperty();
+        private readonly BoolReactiveProperty gridCalculating = new BoolReactiveProperty(true);
         public IObservable<Unit> OnGridCalculated()
         {
             return gridCalculating.Where(x => !x).Take(1).Select(_ => Unit.Default);
         }
 
-        void Start()
+        /// <summary>
+        /// Awake is called when the script instance is being loaded.
+        /// </summary>
+        void Awake()
         {
             IoC.RegisterSingleton(this);
+        }
 
+        void Start()
+        {
             extend
             .Where(x => x > 0f)
             .Throttle(TimeSpan.FromSeconds(1))
@@ -389,11 +395,6 @@ namespace Assets.Systems.Pathfinding
                     }
                 }
             }
-        }
-
-        public float HeightOnPosition(Vector3 worldPos)
-        {
-            var pos = GetPosition(worldPos);
         }
 
         private void AddCubeFacePositions(CubeFace face)

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace Assets.Utils
 {
@@ -32,14 +33,19 @@ namespace Assets.Utils
         }
     }
 
+    [System.Serializable]
     public struct RangeValue
         {
             public float Min, Max;
+            private float[] pool;
+            private int next;
 
             /// inclusive on both sides
             public float Between
             {
-                get { return Random.Range(Min, Max); }
+                get { 
+                    return Random.Range(Min, Max);
+                }
             }
 
             public float Distance

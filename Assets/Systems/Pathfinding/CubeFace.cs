@@ -84,6 +84,7 @@ namespace Assets.Systems.Pathfinding
                 CubeFace.Back;
         }
 
+        //TODO: dunno for what i needed this but it looks important
         public static Vector3 MapToFacePlane(this CubeFace face, float x, float y)
         {
             var fieldDirection = -face.ToUpperLeftUnitVector();
@@ -95,7 +96,7 @@ namespace Assets.Systems.Pathfinding
             if (Mathf.Approximately(fieldDirection.z, 0f))
                 return new Vector3(x, y, 0f);
 
-            throw new Exception("should never happen :)");
+            throw new Exception("should never happen òÓ");
         }
 
         public static CubeFace XOverflow(this CubeFace face)

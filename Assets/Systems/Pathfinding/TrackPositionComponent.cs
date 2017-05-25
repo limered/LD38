@@ -10,6 +10,7 @@ namespace Assets.Systems.Pathfinding
     {
         public readonly ReactiveProperty<Position> CurrentPosition = new ReactiveProperty<Position>();
         public SimplePosition simplePosition;
+        public Vector3 fieldsWorldPosition;
 
         protected override void OnStart(){
             if(!CurrentPosition.HasValue) 

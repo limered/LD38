@@ -1,7 +1,7 @@
 using Assets.SystemBase;
 using UnityEngine;
 
-namespace Assets.Systems.PlayerMovement
+namespace Assets.Systems.Movement
 {
     [RequireComponent(typeof(Rigidbody))]
     public class PlayerComponent : GameComponent

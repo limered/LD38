@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Assets.SystemBase;
-using Assets.Systems.PlayerMovement;
+using Assets.Systems.Movement;
 using Assets.Utils;
 using UnityEngine;
 using UniRx;
@@ -17,20 +17,33 @@ namespace Assets.Systems.Pathfinding
         public override void Register(CanMoveOnPathComponent component)
         {
             var tracker = component.GetComponent<TrackPositionComponent>();
-
-            component.Destination
-            .Where(x => x.HasValue)
-            .Select(x => Grid.gridLUT[x.Value.Combine(Grid.size)])
-            .Where(x => !tracker.CurrentPosition.HasValue || x != tracker.CurrentPosition.Value)
+            IoC.OnResolve<NavigationGrid, Tuple<NavigationGrid, Position>>(
+                grid =>
+                    grid.OnGridCalculated()
+                    .ContinueWith(
+                        component.Destination
+                        .Where(x => x.HasValue)
+                        .Select(x => grid.gridLUT[x.Value.Combine(grid.size)])
+                        .Where(x => !tracker.CurrentPosition.HasValue || x != tracker.CurrentPosition.Value)
+                    )
+                    .Select(x => new Tuple<NavigationGrid, Position>(grid, x))
+            )
             .Subscribe(
-                dest =>
-                component.CurrentPath.Value = Grid.FindPath(Grid.GetPosition(component.transform.position), dest)
+                gridAndDestination =>
+                component.CurrentPath.Value = gridAndDestination.Item1.FindPath(gridAndDestination.Item1.GetPosition(component.transform.position), gridAndDestination.Item2)
             )
             .AddTo(component);
 
-            component.CurrentPath
-            .Where(x => x != null)
-            .Subscribe(x =>
+            IoC.OnResolve<NavigationGrid, Tuple<NavigationGrid, List<Position>>>(
+                grid =>
+                grid.OnGridCalculated()
+                .ContinueWith(
+                    component.CurrentPath
+                    .Where(x => x != null)
+                )
+                .Select(x => new Tuple<NavigationGrid, List<Position>>(grid, x))
+            )
+            .Subscribe(gridAndPositions =>
             {
                 component.MovingSubscription.Disposable = component
                     .FixedUpdateAsObservable()
@@ -41,14 +54,14 @@ namespace Assets.Systems.Pathfinding
                         {
                             component.MovingSubscription.Disposable = null;
                         }
-                        else if (IsOnPosition(component.transform.position, component.CurrentPath.Value[0]))
+                        else if (IsOnPosition(gridAndPositions.Item1, component.transform.position, component.CurrentPath.Value[0]))
                         {
                             component.CurrentPath.Value.RemoveAt(0);
                         }
                         else
                         {
                             component.gameObject.GetComponent<Rigidbody>()
-                                    .AddForce((Grid.grid[component.CurrentPath.Value[0]] - component.transform.position).normalized * component.Speed.Value, ForceMode.Force);
+                                    .AddForce((gridAndPositions.Item1.grid[component.CurrentPath.Value[0]] - component.transform.position).normalized * component.Speed.Value, ForceMode.Force);
                         }
                     },
                     () => component.MovingSubscription.Disposable = null);
@@ -56,27 +69,40 @@ namespace Assets.Systems.Pathfinding
             .AddTo(component);
         }
 
-        private bool IsOnPosition(Vector3 myPos, Position pos)
+        private bool IsOnPosition(NavigationGrid grid, Vector3 myPos, Position pos)
         {
-            return (myPos - Grid.grid[pos]).sqrMagnitude > (Grid.fieldSize / 2f) * (Grid.fieldSize / 2f);
+            return (myPos - grid.grid[pos]).sqrMagnitude > (grid.fieldSize / 2f) * (grid.fieldSize / 2f);
         }
 
         public override void Register(TrackPositionComponent component)
         {
-            component.UpdateAsObservable()
-            .Sample(TimeSpan.FromMilliseconds(100))
-            .Subscribe(x => {
-                var pos = Grid.GetPosition(component.transform.position, component.CurrentPosition.HasValue && component.CurrentPosition.Value!=null ? component.CurrentPosition.Value.face : (CubeFace?)null);
-                if(pos != component.CurrentPosition.Value)
+            IoC.OnResolve<NavigationGrid, NavigationGrid>(
+                grid =>
+                grid.OnGridCalculated()
+                .ContinueWith(
+                    component.UpdateAsObservable()
+                    .Sample(TimeSpan.FromMilliseconds(100))
+                    .Select(_ => grid)
+                )
+            )
+            .Subscribe(grid =>
+            {
+                var pos = grid.GetPosition(component.transform.position, component.CurrentPosition.HasValue && component.CurrentPosition.Value != null ? component.CurrentPosition.Value.face : (CubeFace?)null);
+                if (pos != component.CurrentPosition.Value)
                 {
-                    component.CurrentPosition.Value = pos;
                     component.simplePosition = pos.Simple;
+                    try
+                    {
+                        component.fieldsWorldPosition = grid.grid[pos];
+                    }
+                    catch (KeyNotFoundException ex)
+                    {
+                        Debug.LogError("Position "+pos+" not found on grid ("+ex.Message+")");
+                    }
+                    component.CurrentPosition.Value = pos;
                 }
             })
             .AddTo(component);
         }
-
-        private NavigationGrid grid = null;
-        private NavigationGrid Grid { get { return grid != null ? grid : (grid = IoC.Resolve<NavigationGrid>()); } }
     }
 }

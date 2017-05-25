@@ -1,7 +1,7 @@
 ﻿using System;
 using Assets.SystemBase;
 using Assets.Systems.Gravity;
-using Assets.Systems.PlayerMovement;
+using Assets.Systems.Movement;
 using Assets.Utils;
 using UniRx;
 using UniRx.Triggers;
