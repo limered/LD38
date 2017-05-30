@@ -54,17 +54,26 @@ namespace Assets.Systems.Pathfinding
                         {
                             component.MovingSubscription.Disposable = null;
                         }
-                        else if (IsOnPosition(gridAndPositions.Item1, component.transform.position, component.CurrentPath.Value[0]))
-                        {
-                            component.CurrentPath.Value.RemoveAt(0);
-                        }
                         else
                         {
-                            component.gameObject.GetComponent<Rigidbody>()
-                                    .AddForce((gridAndPositions.Item1.grid[component.CurrentPath.Value[0]] - component.transform.position).normalized * component.Speed.Value, ForceMode.Force);
+                            if (IsOnPosition(gridAndPositions.Item1, component.transform.position, component.CurrentPath.Value[0])) 
+                                component.CurrentPath.Value.RemoveAt(0);
+
+                            if(component.CurrentPath.Value.Count > 0)
+                                component.CurrentDirection.Value = (gridAndPositions.Item1.grid[component.CurrentPath.Value[0]] - gridAndPositions.Item1.grid[tracker.CurrentPosition.Value]).normalized;
                         }
+                        
                     },
                     () => component.MovingSubscription.Disposable = null);
+            })
+            .AddTo(component);
+
+            component.CurrentPath
+            .Where(x => x != null && x.Count > 0)
+            .Subscribe(x =>
+            {
+                component.DebugCurrentDestination = x[x.Count - 1].Simple;
+                component.DebugDistanceToDestination = x.Count;
             })
             .AddTo(component);
         }
@@ -87,6 +96,7 @@ namespace Assets.Systems.Pathfinding
             )
             .Subscribe(grid =>
             {
+                /*lastFace = component.CurrentPosition.HasValue && component.CurrentPosition.Value != null ? component.CurrentPosition.Value.face : (CubeFace?)null*/
                 var pos = grid.GetPosition(component.transform.position, component.CurrentPosition.HasValue && component.CurrentPosition.Value != null ? component.CurrentPosition.Value.face : (CubeFace?)null);
                 if (pos != component.CurrentPosition.Value)
                 {
@@ -97,7 +107,7 @@ namespace Assets.Systems.Pathfinding
                     }
                     catch (KeyNotFoundException ex)
                     {
-                        Debug.LogError("Position "+pos+" not found on grid ("+ex.Message+")");
+                        Debug.LogError("Position " + pos + " not found on grid (" + ex.Message + ")");
                     }
                     component.CurrentPosition.Value = pos;
                 }

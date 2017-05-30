@@ -10,6 +10,7 @@ namespace Assets.Systems.Pathfinding
         public bool blocked = false;
         public readonly short x;
         public readonly short y;
+        public readonly OutOfBounds outOfBounds;
         public short normalizedX;
         public readonly short gridSize;
         public readonly CubeFace face;
@@ -17,12 +18,13 @@ namespace Assets.Systems.Pathfinding
 
         public readonly Neighbour? missing;
 
-        public Position(short normalizedX, short y, CubeFace face, short gridSize)
+        public Position(short normalizedX, short y, CubeFace face, OutOfBounds outOfBounds, short gridSize)
         {
             this.gridSize = gridSize;
             this.normalizedX = (short)(normalizedX % gridSize);
             this.x = (short)(this.normalizedX + gridSize * (int)face);
             this.y = y;
+            this.outOfBounds = outOfBounds;
             this.face = face;
 
             missing = normalizedX == 0 && y == 0 ? Neighbour.LowerLeft
@@ -32,11 +34,12 @@ namespace Assets.Systems.Pathfinding
                       : (Neighbour?)null;
         }
 
-        public Position(short x, short y, short gridSize)
+        public Position(short x, short y, OutOfBounds outOfBounds, short gridSize)
         {
             this.gridSize = gridSize;
             this.x = x;
             this.y = y;
+            this.outOfBounds = outOfBounds;
             this.face = (CubeFace)(x / gridSize);
             this.normalizedX = (short)(x % gridSize);
 
@@ -51,6 +54,7 @@ namespace Assets.Systems.Pathfinding
             : this(
                 (short)(xAndyCombined >> 16),
                 (short)(xAndyCombined & 0xFFFF),
+                OutOfBounds.Nope,
                 gridSize
             )
         { }
@@ -60,6 +64,7 @@ namespace Assets.Systems.Pathfinding
                 (short)((xAndyCombined >> 16) % gridSize),
                 (short)(xAndyCombined & 0xFFFF),
                 face,
+                OutOfBounds.Nope,
                 gridSize
             )
         { }
@@ -132,7 +137,7 @@ namespace Assets.Systems.Pathfinding
         {
             get
             {
-                return new SimplePosition(normalizedX, y, face);
+                return new SimplePosition(normalizedX, y, outOfBounds, face);
             }
         }
     }
@@ -169,12 +174,14 @@ namespace Assets.Systems.Pathfinding
     {
         public short x;
         public short y;
+        public OutOfBounds outOfBounds;
         public CubeFace face;
 
-        public SimplePosition(short normalizedX, short y, CubeFace face)
+        public SimplePosition(short normalizedX, short y, OutOfBounds oob, CubeFace face)
         {
             this.x = normalizedX;
             this.y = y;
+            this.outOfBounds = oob;
             this.face = face;
         }
 
@@ -206,5 +213,20 @@ namespace Assets.Systems.Pathfinding
         {
             return Position.Combine((short)(x + gridSize * (int)face), y);
         }
+
+        public override string ToString()
+        {
+            return "(x="+x+" y="+y+" face="+face+" out-of-bounds="+outOfBounds+")";
+        }
+    }
+
+    [Flags]
+    public enum OutOfBounds
+    {
+        Nope = 0,
+        X_Below_0 = 1,
+        X_Over_Max = 2,
+        Y_Below_0 = 4,
+        Y_Over_Max = 8
     }
 }

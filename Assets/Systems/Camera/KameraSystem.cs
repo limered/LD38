@@ -2,6 +2,7 @@
 using Assets.SystemBase;
 using Assets.Systems.Gravity;
 using Assets.Systems.Movement;
+using Assets.Systems.Pathfinding;
 using Assets.Utils;
 using UniRx;
 using UniRx.Triggers;
@@ -44,7 +45,8 @@ namespace Assets.Systems.Camera
 
             const float t = 1f / 10;
             PlayerComponent playerComp;
-            if (_daPlaya.TryGetComponent(out playerComp))
+            TrackPositionComponent cps;
+            if (_daPlaya.TryGetComponent(out playerComp) && _daPlaya.TryGetComponent(out cps) && cps.CurrentPosition.Value != null)
             {
                 var originToPlayer = _daPlaya.transform.position - camera.transform.position;
                 var angle = Vector3.Angle(originToPlayer, camera.transform.forward);
@@ -52,7 +54,7 @@ namespace Assets.Systems.Camera
                 var axis = Vector3.Cross(camera.transform.forward, originToPlayer);
                 camera.transform.Rotate(axis, angle, Space.World);
 
-                var targetRotation = Quaternion.AngleAxis((int)_daPlaya.GetComponent<GravityComponent>().CurrentFace, Vector3.forward);
+                var targetRotation = Quaternion.AngleAxis((int)cps.CurrentPosition.Value.face, Vector3.forward);
                 var rotationStep = Quaternion.Slerp(camera.gameObject.transform.localRotation, targetRotation, t);                
                 camera.gameObject.transform.localRotation = rotationStep;
             }

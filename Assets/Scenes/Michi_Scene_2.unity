@@ -197,7 +197,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bd010bf0e986d3c4bbdb437304a139a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CurrentFace: 0
 --- !u!65 &184290383
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -243,10 +242,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea1019033c9634a2ca6044aec13b5d28, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  DebugCurrentDestination:
+    x: 0
+    y: 0
+    outOfBounds: 0
+    face: 0
+  DebugDistanceToDestination: 0
   CurrentDirection:
     value: {x: 0, y: 0, z: 0}
-  Speed:
-    value: 10
 --- !u!114 &184290387
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -261,7 +264,9 @@ MonoBehaviour:
   simplePosition:
     x: 0
     y: 0
+    outOfBounds: 0
     face: 0
+  fieldsWorldPosition: {x: 0, y: 0, z: 0}
 --- !u!1001 &259961714
 Prefab:
   m_ObjectHideFlags: 0
@@ -346,7 +351,7 @@ MonoBehaviour:
   labelDistance: 5
   labelColor: {r: 1, g: 1, b: 1, a: 1}
   renderGrid: 1
-  showGrid: 
+  showGrid: 000000000100000002000000030000000400000005000000
   showNeighbourMesh: 0
   neighbourLineLength: 0.47
   recalculateLabelOffset: 0
@@ -800,7 +805,9 @@ MonoBehaviour:
   simplePosition:
     x: 0
     y: 0
+    outOfBounds: 0
     face: 0
+  fieldsWorldPosition: {x: 0, y: 0, z: 0}
 --- !u!1 &1875326254
 GameObject:
   m_ObjectHideFlags: 0
@@ -896,7 +903,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4263894949441398, guid: e68c5676b8d0949cab595741d005b45c, type: 2}
       propertyPath: m_LocalPosition.z
-      value: -6
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4263894949441398, guid: e68c5676b8d0949cab595741d005b45c, type: 2}
       propertyPath: m_LocalRotation.x
@@ -1031,6 +1038,9 @@ GameObject:
   - component: {fileID: 2107031231}
   - component: {fileID: 2107031230}
   - component: {fileID: 2107031229}
+  - component: {fileID: 2107031233}
+  - component: {fileID: 2107031235}
+  - component: {fileID: 2107031234}
   m_Layer: 0
   m_Name: Bird1
   m_TagString: Untagged
@@ -1045,7 +1055,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 2107031227}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 22.36, z: 0}
+  m_LocalPosition: {x: 10.08, y: 22.36, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 2129909087}
@@ -1063,10 +1073,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a254b56faf3a440a9684ea790de8848, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Height: 5
+  Height: 4
+  pushing: 0
   BounceForce:
-    Min: 9
-    Max: 10
+    Min: 10
+    Max: 20
 --- !u!114 &2107031230
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1078,7 +1089,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bd010bf0e986d3c4bbdb437304a139a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CurrentFace: 0
 --- !u!54 &2107031231
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1087,9 +1097,9 @@ Rigidbody:
   m_GameObject: {fileID: 2107031227}
   serializedVersion: 2
   m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_UseGravity: 1
+  m_Drag: 3
+  m_AngularDrag: 3
+  m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
@@ -1108,7 +1118,57 @@ MonoBehaviour:
   simplePosition:
     x: 0
     y: 0
+    outOfBounds: 0
     face: 0
+  fieldsWorldPosition: {x: 0, y: 0, z: 0}
+--- !u!65 &2107031233
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 2107031227}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 0.78, y: 0.44, z: 0.76}
+  m_Center: {x: 0, y: 0.24, z: 0}
+--- !u!114 &2107031234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 2107031227}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9e5d51a4db78419680a734d2ad3591a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentGoal:
+    x: 0
+    y: 0
+    outOfBounds: 0
+    face: 0
+  Speed: 1
+--- !u!114 &2107031235
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 2107031227}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea1019033c9634a2ca6044aec13b5d28, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DebugCurrentDestination:
+    x: 0
+    y: 0
+    outOfBounds: 0
+    face: 0
+  DebugDistanceToDestination: 0
+  CurrentDirection:
+    value: {x: 0, y: 0, z: 0}
 --- !u!1 &2126176748
 GameObject:
   m_ObjectHideFlags: 0

@@ -22,33 +22,39 @@ namespace Assets.Systems.Gravity
 
         public override void Register(GravityComponent component)
         {
-            IoC.OnResolve<NavigationGrid, Position>(
-                grid =>
-                    grid.OnGridCalculated().ContinueWith
-                    (
-                        component.GetComponent<TrackPositionComponent>().CurrentPosition
-                        .Where(x => x != null)
-                    )
-            )
-            .Subscribe(x => component.CurrentFace = x.face)
-            .AddTo(component);
+            // IoC.OnResolve<NavigationGrid, Position>(
+            //     grid =>
+            //         grid.OnGridCalculated().ContinueWith
+            //         (
+            //             component.GetComponent<TrackPositionComponent>().CurrentPosition
+            //             .Where(x => x != null)
+            //         )
+            // )
+            // .Subscribe(x => component.CurrentFace = x.face)
+            // .AddTo(component);
 
+            var cps = component.GetComponent<TrackPositionComponent>();
             component.GetComponent<Rigidbody>().useGravity = false;
-            IoC.OnResolve<NavigationGrid, Unit>(
+            IoC.OnResolve<NavigationGrid, NavigationGrid>(
                 grid =>
                 grid.OnGridCalculated().ContinueWith
                 (
                     component.UpdateAsObservable()
                 )
+                .Where(_ => cps.CurrentPosition.Value != null)
+                .Select(_ => grid)
             )
-            .Subscribe(_ => UpdateGravity(component))
+            .Subscribe(grid => UpdateGravity(component, cps.CurrentPosition.Value, grid))
             .AddTo(component);
         }
 
-        private void UpdateGravity(GravityComponent comp)
+        private void UpdateGravity(GravityComponent comp, Position currentPos, NavigationGrid grid)
         {
-            var gravVec = comp.CurrentFace.Opposite().ToUnitVector() * _config.GravityForce;
-            Debug.DrawRay(comp.transform.position, gravVec, Color.cyan);
+            var gravVec = currentPos.outOfBounds == OutOfBounds.Nope 
+            ? currentPos.face.Opposite().ToUnitVector() * _config.GravityForce
+            : ((currentPos.face.Add(currentPos.outOfBounds).ToUnitVector()*grid.extend.Value/2f) - comp.transform.position).normalized * _config.GravityForce;
+
+            Debug.DrawRay(comp.transform.position, gravVec, Color.green);
             comp.GetComponent<Rigidbody>().AddForce(gravVec);
         }
 
@@ -59,10 +65,13 @@ namespace Assets.Systems.Gravity
             component.FixedUpdateAsObservable()
             .Do(_ => component.pushing = posComponent.CurrentPosition.HasValue && (component.transform.position - posComponent.fieldsWorldPosition).magnitude < component.Height)
             .Where(_ => posComponent.CurrentPosition.HasValue)
-            .Where(_ => (component.transform.position - posComponent.fieldsWorldPosition).magnitude < component.Height)
             .Subscribe(_ =>
              {
-                 rigidbody.AddForce(posComponent.simplePosition.face.ToUnitVector() * component.BounceForce.Between);
+                 var force = posComponent.simplePosition.face.ToUnitVector() * component.BounceForce.Between;
+                 if((component.transform.position - posComponent.fieldsWorldPosition).magnitude < component.Height)
+                    rigidbody.AddForce(force);
+                 else if((component.transform.position - posComponent.fieldsWorldPosition).magnitude > component.Height*2f)
+                    rigidbody.AddForce(-force);
              })
             .AddTo(component);
         }

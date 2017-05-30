@@ -2,6 +2,7 @@
 using Assets.Systems.Pathfinding;
 using Assets.Utils;
 using UnityEngine;
+using UniRx;
 
 namespace Assets.Systems.Gravity
 {
@@ -9,24 +10,39 @@ namespace Assets.Systems.Gravity
     [RequireComponent(typeof(TrackPositionComponent))]
     public class GravityComponent : GameComponent
     {
-        public CubeFace CurrentFace;
+        private NavigationGrid grid;
+        private Position currentPos;
+
+        protected override void OnStart()
+        {
+            var posComp = GetComponent<TrackPositionComponent>();
+            IoC.OnResolve<NavigationGrid, Position>(
+                g => g.OnGridCalculated().ContinueWith(
+                    _ =>
+                    {
+                        this.grid = g;
+                        return posComp.CurrentPosition
+                        .Where(x => x != null);
+                    }
+                )
+            )
+            .Subscribe(pos => this.currentPos = pos)
+            .AddTo(posComp);
+        }
 
         void OnDrawGizmosSelected()
         {
-            if (Grid != null && Grid.isActiveAndEnabled)
+            if (grid != null && currentPos != null)
             {
-                var pos = Grid.GetPosition(transform.position);
                 Vector3 v;
-                if (Grid.grid.TryGetValue(pos, out v))
+                if (grid.grid.TryGetValue(currentPos, out v))
                 {
-                    Gizmos.color = Color.green;
-                    Grid.DrawField(pos, v, false);
+                    Gizmos.color = currentPos.outOfBounds == OutOfBounds.Nope 
+                        ? Color.green 
+                        : Color.gray;
+                    grid.DrawField(currentPos, v, false);
                 }
             }
         }
-
-
-        private NavigationGrid grid;
-        private NavigationGrid Grid { get { return grid ?? (grid = IoC.ResolveOrDefault<NavigationGrid>()); } }
     }
 }

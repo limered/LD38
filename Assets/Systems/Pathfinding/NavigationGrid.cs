@@ -97,45 +97,47 @@ namespace Assets.Systems.Pathfinding
             return l;
         }
 
-        private float GetNearestValue(Vector3 worldPos, CubeFace face)
+        private float GetDistanceToFace(Vector3 worldPos, CubeFace face)
         {
-            return Mathf.Min(extend.Value*extend.Value, (worldPos - face.ToUnitVector()).sqrMagnitude);
+            return Vector3.Dot(worldPos, face.Opposite().ToUnitVector());
+            //Mathf.Min(extend.Value*extend.Value, (worldPos - (face.ToUnitVector()*extend.Value)).sqrMagnitude);
         }
 
         private Vector3 drawUpperLeft, drawEX, drawEY;
         public Position GetPosition(Vector3 worldPosition, CubeFace? lastFace = null)
         {
+            lastFace = null;
             Position pos = null;
             CubeFace nearestFace = CubeFace.Up;
-            float nearestValue = GetNearestValue(worldPosition, CubeFace.Up);
+            float nearestValue = GetDistanceToFace(worldPosition, CubeFace.Up);
             float temp = 0;
 
-            if (nearestValue > (temp = GetNearestValue(worldPosition, CubeFace.Up)))
+            if (nearestValue > (temp = GetDistanceToFace(worldPosition, CubeFace.Up)))
             {
                 nearestFace = CubeFace.Up;
                 nearestValue = temp;
             }
-            if (nearestValue > (temp = GetNearestValue(worldPosition, CubeFace.Down)))
+            if (nearestValue > (temp = GetDistanceToFace(worldPosition, CubeFace.Down)))
             {
                 nearestFace = CubeFace.Down;
                 nearestValue = temp;
             }
-            if (nearestValue > (temp = GetNearestValue(worldPosition, CubeFace.Back)))
+            if (nearestValue > (temp = GetDistanceToFace(worldPosition, CubeFace.Back)))
             {
                 nearestFace = CubeFace.Back;
                 nearestValue = temp;
             }
-            if (nearestValue > (temp = GetNearestValue(worldPosition, CubeFace.Forward)))
+            if (nearestValue > (temp = GetDistanceToFace(worldPosition, CubeFace.Forward)))
             {
                 nearestFace = CubeFace.Forward;
                 nearestValue = temp;
             }
-            if (nearestValue > (temp = GetNearestValue(worldPosition, CubeFace.Left)))
+            if (nearestValue > (temp = GetDistanceToFace(worldPosition, CubeFace.Left)))
             {
                 nearestFace = CubeFace.Left;
                 nearestValue = temp;
             }
-            if (nearestValue > (temp = GetNearestValue(worldPosition, CubeFace.Right)))
+            if (nearestValue > (temp = GetDistanceToFace(worldPosition, CubeFace.Right)))
             {
                 nearestFace = CubeFace.Right;
                 nearestValue = temp;
@@ -203,13 +205,21 @@ namespace Assets.Systems.Pathfinding
             var pE = new Vector2(eX.x * p.x + eX.y * p.y, eY.x * p.x + eY.y * p.y);
             x = (short)((pE / extend.Value).x * size);
             y = (short)((pE / extend.Value).y * size);
+
+            var oob = OutOfBounds.Nope;
+            if(x < 0) oob |= OutOfBounds.X_Below_0;
+            if(x >= size) oob |= OutOfBounds.X_Over_Max;
+            if(y < 0) oob |= OutOfBounds.Y_Below_0;
+            if(y >= size) oob |= OutOfBounds.Y_Over_Max;
+            
             
             //Debug.Log("face="+face+"  x="+x+"  y="+y);
 
             return new Position(
-                (short)Mathf.Max(0, Mathf.Min(size, x)),
-                (short)Mathf.Max(0, Mathf.Min(size, y)),
+                (short)Mathf.Max(0, Mathf.Min(size-1, x)),
+                (short)Mathf.Max(0, Mathf.Min(size-1, y)),
                 face,
+                oob,
                 size
             );
         }
@@ -377,7 +387,7 @@ namespace Assets.Systems.Pathfinding
                         int neighbour;
                         if (nFace == p.face)
                         {
-                            neighbour = new Position(x, y, p.face, size).Combined;
+                            neighbour = new Position(x, y, p.face, OutOfBounds.Nope, size).Combined;
                         }
                         //if neighbour is on other face of the cube we need to calculate corresponding x & y values
                         else
@@ -423,7 +433,7 @@ namespace Assets.Systems.Pathfinding
                     if (Mathf.Approximately(fieldDirection.z, 0f))
                         fieldOffset = new Vector3(fieldDirection.x * nX, fieldDirection.y * nY, 0f);
 
-                    var pos = new Position(x, y, size);
+                    var pos = new Position(x, y, OutOfBounds.Nope, size);
 
                     //TODO: for testing purposes
                     //pos.blocked = Mathf.PerlinNoise(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f)) < 0.3f;

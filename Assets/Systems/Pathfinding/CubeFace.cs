@@ -174,6 +174,17 @@ namespace Assets.Systems.Pathfinding
             throw new Exception("wtf oO");
         }
 
+        public static CubeFace Add(this CubeFace face, OutOfBounds oob)
+        {
+            var result = face;
+            if((oob & OutOfBounds.X_Below_0) != OutOfBounds.Nope) result = result.XBelowZero();
+            if((oob & OutOfBounds.X_Over_Max) != OutOfBounds.Nope) result = result.XOverflow();
+            if((oob & OutOfBounds.Y_Below_0) != OutOfBounds.Nope) result = result.YBelowZero();
+            if((oob & OutOfBounds.Y_Over_Max) != OutOfBounds.Nope) result = result.YOverflow();
+
+            return result;
+        }
+
         public enum Direction
         {
             Up,

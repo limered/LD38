@@ -12,9 +12,14 @@ namespace Assets.Systems.Pathfinding
         public SimplePosition simplePosition;
         public Vector3 fieldsWorldPosition;
 
-        protected override void OnStart(){
-            if(!CurrentPosition.HasValue) 
-                CurrentPosition.Value = IoC.Resolve<NavigationGrid>().GetPosition(transform.position);
+        protected override void OnStart()
+        {
+            IoC.OnResolve<NavigationGrid, Unit>( grid => Observable.ReturnUnit()).Subscribe(_ =>
+            {
+                if (!CurrentPosition.HasValue)
+                    CurrentPosition.Value = IoC.Resolve<NavigationGrid>().GetPosition(transform.position);
+            })
+            .AddTo(this);
         }
     }
 }

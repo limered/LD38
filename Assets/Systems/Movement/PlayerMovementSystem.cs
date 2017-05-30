@@ -27,15 +27,17 @@ namespace Assets.Systems.Movement
         {
             if (!comp) return;
 
+            var cps = comp.GetComponent<TrackPositionComponent>();
             comp.UpdateAsObservable()
-                .Subscribe(_ => UpdatePlayer(comp))
+                .Where(_ => cps.CurrentPosition.Value != null)
+                .Subscribe(_ => UpdatePlayer(comp, cps.CurrentPosition.Value.face))
                 .AddTo(comp);
         }
 
-        private void UpdatePlayer(PlayerComponent player)
+        private void UpdatePlayer(PlayerComponent player, CubeFace currentFace)
         {
-            MovePlayer(player);
-            FixRotation(player);
+            MovePlayer(player, currentFace);
+            FixRotation(player, currentFace);
             CheckBounds(player);
         }
 
@@ -69,16 +71,16 @@ namespace Assets.Systems.Movement
             }
         }
 
-        private void MovePlayer(PlayerComponent player)
+        private void MovePlayer(PlayerComponent player, CubeFace currentFace)
         {
             var direction = new Vector3();
             if (KeyCode.A.IsPressed())
             {
-                CalculateLeft(ref direction, player.GetComponent<GravityComponent>().CurrentFace);
+                CalculateLeft(ref direction, currentFace);
             }
             if (KeyCode.D.IsPressed())
             {
-                CalculateRight(ref direction, player.GetComponent<GravityComponent>().CurrentFace);
+                CalculateRight(ref direction, currentFace);
             }
 
             if (KeyCode.W.IsPressed())
@@ -127,10 +129,10 @@ namespace Assets.Systems.Movement
             if (rot == CubeFace.Back) direction.y += 1;
         }
 
-        private void FixRotation(PlayerComponent player)
+        private void FixRotation(PlayerComponent player, CubeFace currentFace)
         {
             const float t = 1f / 10;
-            var targetRotation = Quaternion.AngleAxis(Vector3.Angle(player.GetComponent<GravityComponent>().CurrentFace.ToUnitVector(), Vector3.up), Vector3.forward);
+            var targetRotation = Quaternion.AngleAxis(Vector3.Angle(currentFace.ToUnitVector(), Vector3.up), Vector3.forward);
             var rotationStep = Quaternion.Slerp(player.gameObject.transform.localRotation, targetRotation, t);
 
             player.gameObject.transform.localRotation = rotationStep;
