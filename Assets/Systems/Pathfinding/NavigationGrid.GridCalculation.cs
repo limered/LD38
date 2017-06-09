@@ -43,19 +43,19 @@ namespace Assets.Systems.Pathfinding
         }
 
         ///returns position as combined-int
-        public static int CalcNeighbourField(Position pos, CubeFace neighbourFace, int gridSize)
+        public static int CalcNeighbourField(short normalizedX, short y, CubeFace face, CubeFace neighbourFace, int gridSize)
         {
 
             try
             {
-                var n = new CubeFaceNeighbours(pos.face, neighbourFace, null);
-                var fun = neighbourConverters.ContainsKey(n) ? neighbourConverters[n] : neighbourConverters[new CubeFaceNeighbours(neighbourFace, pos.face, null)];
+                var n = new CubeFaceNeighbours(face, neighbourFace, null);
+                var fun = neighbourConverters.ContainsKey(n) ? neighbourConverters[n] : neighbourConverters[new CubeFaceNeighbours(neighbourFace, face, null)];
                 var neighbourField = fun(
-                    (short)(pos.x % gridSize), pos.y,
+                    normalizedX, y,
                     gridSize,
                     neighbourFace);
 
-                short x, y; Position.Decombine(neighbourField, out x, out y);
+                Position.Decombine(neighbourField, out normalizedX, out y);
                 // Debug.Log("CalcNeighbourField " + pos + " <-> " + new Position(x, y, neighbourFace, (short)gridSize));
 
                 return neighbourField;

@@ -30,7 +30,7 @@ namespace Assets.Systems.Pathfinding
             )
             .Subscribe(
                 gridAndDestination =>
-                component.CurrentPath.Value = gridAndDestination.Item1.FindPath(gridAndDestination.Item1.GetPosition(component.transform.position), gridAndDestination.Item2)
+                component.CurrentPath.SetValueAndForceNotify(gridAndDestination.Item1.FindPath(gridAndDestination.Item1.GetPosition(component.transform.position, null), gridAndDestination.Item2))
             )
             .AddTo(component);
 
@@ -60,7 +60,7 @@ namespace Assets.Systems.Pathfinding
                                 component.CurrentPath.Value.RemoveAt(0);
 
                             if(component.CurrentPath.Value.Count > 0)
-                                component.CurrentDirection.Value = (gridAndPositions.Item1.grid[component.CurrentPath.Value[0]] - gridAndPositions.Item1.grid[tracker.CurrentPosition.Value]).normalized;
+                                component.CurrentDirection.SetValueAndForceNotify((gridAndPositions.Item1.grid[component.CurrentPath.Value[0]] - gridAndPositions.Item1.grid[tracker.CurrentPosition.Value]).normalized);
                         }
                         
                     },
@@ -96,10 +96,15 @@ namespace Assets.Systems.Pathfinding
             )
             .Subscribe(grid =>
             {
-                /*lastFace = component.CurrentPosition.HasValue && component.CurrentPosition.Value != null ? component.CurrentPosition.Value.face : (CubeFace?)null*/
-                var pos = grid.GetPosition(component.transform.position, component.CurrentPosition.HasValue && component.CurrentPosition.Value != null ? component.CurrentPosition.Value.face : (CubeFace?)null);
+                var pos = grid.GetPosition(component.transform.position, component.CurrentPosition.Value != null ? component.CurrentPosition.Value.face : (CubeFace?)null);
                 if (pos != component.CurrentPosition.Value)
                 {
+                    var realPos = grid.gridLUT[pos.Combined];
+                    for(var i=0; i<realPos.neighbours.Length; i++) 
+                    {
+                        pos.neighbours[i] = realPos.neighbours[i];
+                    }
+                    
                     component.simplePosition = pos.Simple;
                     try
                     {
@@ -109,7 +114,9 @@ namespace Assets.Systems.Pathfinding
                     {
                         Debug.LogError("Position " + pos + " not found on grid (" + ex.Message + ")");
                     }
-                    component.CurrentPosition.Value = pos;
+                    
+                    component.CurrentPosition.SetValueAndForceNotify(pos);
+                    Debug.Log(component.CurrentPosition.Value.outOfBounds);
                 }
             })
             .AddTo(component);

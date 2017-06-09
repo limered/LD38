@@ -8,6 +8,7 @@ namespace Assets.Systems.Pathfinding
 {
     public class TrackPositionComponent : GameComponent
     {
+        public CubeFace? unsureAboutItsPositionSoRememberingOldFace;
         public readonly ReactiveProperty<Position> CurrentPosition = new ReactiveProperty<Position>();
         public SimplePosition simplePosition;
         public Vector3 fieldsWorldPosition;
@@ -17,7 +18,7 @@ namespace Assets.Systems.Pathfinding
             IoC.OnResolve<NavigationGrid, Unit>( grid => Observable.ReturnUnit()).Subscribe(_ =>
             {
                 if (!CurrentPosition.HasValue)
-                    CurrentPosition.Value = IoC.Resolve<NavigationGrid>().GetPosition(transform.position);
+                    CurrentPosition.Value = IoC.Resolve<NavigationGrid>().GetPosition(transform.position, CurrentPosition.Value != null ? CurrentPosition.Value.face : (CubeFace?)null);
             })
             .AddTo(this);
         }

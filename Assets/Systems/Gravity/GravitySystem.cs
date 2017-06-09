@@ -22,56 +22,51 @@ namespace Assets.Systems.Gravity
 
         public override void Register(GravityComponent component)
         {
-            // IoC.OnResolve<NavigationGrid, Position>(
-            //     grid =>
-            //         grid.OnGridCalculated().ContinueWith
-            //         (
-            //             component.GetComponent<TrackPositionComponent>().CurrentPosition
-            //             .Where(x => x != null)
-            //         )
-            // )
-            // .Subscribe(x => component.CurrentFace = x.face)
-            // .AddTo(component);
-
-            var cps = component.GetComponent<TrackPositionComponent>();
-            component.GetComponent<Rigidbody>().useGravity = false;
-            IoC.OnResolve<NavigationGrid, NavigationGrid>(
-                grid =>
-                grid.OnGridCalculated().ContinueWith
-                (
-                    component.UpdateAsObservable()
-                )
-                .Where(_ => cps.CurrentPosition.Value != null)
-                .Select(_ => grid)
-            )
-            .Subscribe(grid => UpdateGravity(component, cps.CurrentPosition.Value, grid))
+            NavigationGrid.ResolveGridAndWaitTilItFinishedCalculating(grid => RegisterGravityComponent(component, grid))
             .AddTo(component);
         }
 
-        private void UpdateGravity(GravityComponent comp, Position currentPos, NavigationGrid grid)
+        private void RegisterGravityComponent(GravityComponent component, NavigationGrid grid)
         {
-            var gravVec = currentPos.outOfBounds == OutOfBounds.Nope 
-            ? currentPos.face.Opposite().ToUnitVector() * _config.GravityForce
-            : ((currentPos.face.Add(currentPos.outOfBounds).ToUnitVector()*grid.extend.Value/2f) - comp.transform.position).normalized * _config.GravityForce;
-
-            Debug.DrawRay(comp.transform.position, gravVec, Color.green);
-            comp.GetComponent<Rigidbody>().AddForce(gravVec);
+            var rigidBody = component.GetComponent<Rigidbody>();
+            rigidBody.useGravity = false;
+            var cps = component.GetComponent<TrackPositionComponent>();
+            component.FixedUpdateAsObservable()
+            .Where(_ => cps.CurrentPosition.Value != null)
+            .Subscribe(_ => UpdateGravity(component, cps.CurrentPosition.Value, rigidBody, grid))
+            .AddTo(component);
         }
 
-        public override void Register(HoverComponent component)
+        private void UpdateGravity(GravityComponent comp, Position currentPos, Rigidbody rigidBody, NavigationGrid grid)
+        {
+            var gravVec = currentPos.face.Opposite().ToUnitVector() * _config.GravityForce;
+
+            Debug.DrawRay(comp.transform.position, gravVec, Color.green);
+            rigidBody.AddForce(gravVec);
+        }
+
+        public override void Register(HoverComponent hover)
+        {
+            NavigationGrid.ResolveGridAndWaitTilItFinishedCalculating(grid => RegisterHoverComponent(hover, grid))
+            .AddTo(hover);
+        }
+
+        private void RegisterHoverComponent(HoverComponent component, NavigationGrid grid)
         {
             var posComponent = component.GetComponent<TrackPositionComponent>();
             var rigidbody = component.GetComponent<Rigidbody>();
             component.FixedUpdateAsObservable()
-            .Do(_ => component.pushing = posComponent.CurrentPosition.HasValue && (component.transform.position - posComponent.fieldsWorldPosition).magnitude < component.Height)
             .Where(_ => posComponent.CurrentPosition.HasValue)
             .Subscribe(_ =>
              {
                  var force = posComponent.simplePosition.face.ToUnitVector() * component.BounceForce.Between;
-                 if((component.transform.position - posComponent.fieldsWorldPosition).magnitude < component.Height)
+                 var height = grid.GetHeight(component.transform.position, posComponent.CurrentPosition.Value);
+                 component.currentHeight = height;
+
+                 if(height < component.Height)
                     rigidbody.AddForce(force);
-                 else if((component.transform.position - posComponent.fieldsWorldPosition).magnitude > component.Height*2f)
-                    rigidbody.AddForce(-force);
+                //  else if(height > component.Height*2f)
+                //     rigidbody.AddForce(-force);
              })
             .AddTo(component);
         }

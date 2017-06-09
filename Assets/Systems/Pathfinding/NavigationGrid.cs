@@ -42,6 +42,11 @@ namespace Assets.Systems.Pathfinding
         public bool recalculateLabelOffset = false;
 
         private readonly BoolReactiveProperty gridCalculating = new BoolReactiveProperty(true);
+        public IObservable<T> OnGridCalculated<T>(T v)
+        {
+            return gridCalculating.Where(x => !x).Take(1).Select(_ => v);
+        }
+
         public IObservable<Unit> OnGridCalculated()
         {
             return gridCalculating.Where(x => !x).Take(1).Select(_ => Unit.Default);
@@ -62,6 +67,12 @@ namespace Assets.Systems.Pathfinding
             .Throttle(TimeSpan.FromSeconds(1))
             .LogOnNext("recalculating grid for new extend: {0}")
             .Subscribe(RecalculateGrid).AddTo(this);
+        }
+
+        public static IDisposable ResolveGridAndWaitTilItFinishedCalculating(Action<NavigationGrid> doSomething)
+        {
+            return IoC.OnResolve<NavigationGrid, NavigationGrid>(grid => grid.OnGridCalculated(grid))
+            .Subscribe(doSomething);
         }
 
         private List<List<Position>> lastPaths = new List<List<Position>>();
@@ -99,18 +110,15 @@ namespace Assets.Systems.Pathfinding
 
         private float GetDistanceToFace(Vector3 worldPos, CubeFace face)
         {
-            return Vector3.Dot(worldPos, face.Opposite().ToUnitVector());
-            //Mathf.Min(extend.Value*extend.Value, (worldPos - (face.ToUnitVector()*extend.Value)).sqrMagnitude);
+            return (worldPos - face.ToUnitVector()).magnitude;//Vector3.Dot(worldPos, face.ToUnitVector());
         }
 
         private Vector3 drawUpperLeft, drawEX, drawEY;
-        public Position GetPosition(Vector3 worldPosition, CubeFace? lastFace = null)
+        public Position GetPosition(Vector3 worldPosition, CubeFace? oldFace)
         {
-            lastFace = null;
-            Position pos = null;
-            CubeFace nearestFace = CubeFace.Up;
-            float nearestValue = GetDistanceToFace(worldPosition, CubeFace.Up);
-            float temp = 0;
+            var nearestFace = CubeFace.Up;
+            var nearestValue = GetDistanceToFace(worldPosition, CubeFace.Up);
+            var temp = 0f;
 
             if (nearestValue > (temp = GetDistanceToFace(worldPosition, CubeFace.Up)))
             {
@@ -143,25 +151,29 @@ namespace Assets.Systems.Pathfinding
                 nearestValue = temp;
             }
 
-            
-            if(!lastFace.HasValue || lastFace.HasValue && nearestFace == lastFace.Value){
-                short x, y;
-                return GetPositionOnFace(nearestFace, worldPosition, out x, out y);
-            }
-            else
-            {
-                short lastFaceX, lastFaceY, nearestFaceX, nearestFaceY;
-                var lastFacePos = GetPositionOnFace(lastFace.Value, worldPosition, out lastFaceX, out lastFaceY);
-                var nearestFacePos = GetPositionOnFace(nearestFace, worldPosition, out nearestFaceX, out nearestFaceY);
 
-                if(nearestFaceX >= 0 && nearestFaceX < size && nearestFaceY >= 0 && nearestFaceY < size)
-                    return nearestFacePos;
-                else    
-                    return lastFacePos;
-            }
+            if(!oldFace.HasValue || oldFace.HasValue && nearestFace == oldFace.Value){ 
+                short x, y; 
+                return GetPositionOnFace(nearestFace, worldPosition, out x, out y); 
+            } 
+            else 
+            { 
+                short lastFaceX, lastFaceY, nearestFaceX, nearestFaceY; 
+                var lastFacePos = GetPositionOnFace(oldFace.Value, worldPosition, out lastFaceX, out lastFaceY); 
+                var nearestFacePos = GetPositionOnFace(nearestFace, worldPosition, out nearestFaceX, out nearestFaceY); 
+ 
+                if(nearestFacePos.outOfBounds == OutOfBounds.Nope) 
+                    return nearestFacePos; 
+                else     
+                    return lastFacePos; 
+            } 
+
+            // short x, y;
+            // return GetPositionOnFace(nearestFace, worldPosition, out x, out y);
         }
 
-        private Position GetPositionOnFace(CubeFace face, Vector3 worldPosition, out short x, out short y){
+        private Position GetPositionOnFace(CubeFace face, Vector3 worldPosition, out short x, out short y)
+        {
             var center = offset + transform.position + face.ToUnitVector() * extend.Value / 2f;
             var upperLeft = center
             + face.ToUpperLeftUnitVector() * (Mathf.Sqrt(extend.Value * extend.Value + extend.Value * extend.Value) / 2f) // upper left
@@ -171,7 +183,7 @@ namespace Assets.Systems.Pathfinding
             var upperRight = center
             - face.ToUpperLeftUnitVector() * (Mathf.Sqrt(extend.Value * extend.Value + extend.Value * extend.Value) / 2f) // upper left
             ;
-            
+
             var fieldDirection = -face.ToUpperLeftUnitVector();
 
             var eX = Vector2.zero;
@@ -207,17 +219,14 @@ namespace Assets.Systems.Pathfinding
             y = (short)((pE / extend.Value).y * size);
 
             var oob = OutOfBounds.Nope;
-            if(x < 0) oob |= OutOfBounds.X_Below_0;
-            if(x >= size) oob |= OutOfBounds.X_Over_Max;
-            if(y < 0) oob |= OutOfBounds.Y_Below_0;
-            if(y >= size) oob |= OutOfBounds.Y_Over_Max;
-            
-            
-            //Debug.Log("face="+face+"  x="+x+"  y="+y);
+            if (x < 0) oob |= OutOfBounds.X_Below_0;
+            if (x >= size) oob |= OutOfBounds.X_Over_Max;
+            if (y < 0) oob |= OutOfBounds.Y_Below_0;
+            if (y >= size) oob |= OutOfBounds.Y_Over_Max;
 
             return new Position(
-                (short)Mathf.Max(0, Mathf.Min(size-1, x)),
-                (short)Mathf.Max(0, Mathf.Min(size-1, y)),
+                (short)Mathf.Max(0, Mathf.Min(size - 1, x)),
+                (short)Mathf.Max(0, Mathf.Min(size - 1, y)),
                 face,
                 oob,
                 size
@@ -227,6 +236,23 @@ namespace Assets.Systems.Pathfinding
         public Position GetPosition(int combined)
         {
             return gridLUT[combined];
+        }
+
+        public float GetHeight(Vector3 worldPos, Position pos=null)
+        {
+            if(pos == null) pos = GetPosition(worldPos, null);
+            var fieldPos = grid[pos];
+            if(pos.outOfBounds != OutOfBounds.Nope) 
+                return float.PositiveInfinity;
+            
+            var relativeDistance = worldPos - fieldPos;
+            var up = pos.face.ToUnitVector();
+            relativeDistance = new Vector3(
+                relativeDistance.x * up.x, 
+                relativeDistance.y * up.y,
+                relativeDistance.z * up.z
+            );
+            return relativeDistance.magnitude;
         }
 
         private readonly Dictionary<Position, Dictionary<Position, Vector3>> flowFields = new Dictionary<Position, Dictionary<Position, Vector3>>();
@@ -368,18 +394,26 @@ namespace Assets.Systems.Pathfinding
                         if (x < 0)
                         {
                             nFace = p.face.XBelowZero();
+                            x = 0;
+                            y = (short)Math.Max(0, Math.Min(y, size-1));
                         }
                         else if (x == size)
                         {
                             nFace = p.face.XOverflow();
+                            x = (short)(size-1);
+                            y = (short)Math.Max(0, Math.Min(y, size-1));
                         }
                         else if (y < 0)
                         {
                             nFace = p.face.YBelowZero();
+                            y = 0;
+                            x = (short)Math.Max(0, Math.Min(x, size-1));
                         }
                         else if (y == size)
                         {
                             nFace = p.face.YOverflow();
+                            y = (short)(size - 1);
+                            x = (short)Math.Max(0, Math.Min(x, size-1));
                         }
                         //
 
@@ -392,7 +426,7 @@ namespace Assets.Systems.Pathfinding
                         //if neighbour is on other face of the cube we need to calculate corresponding x & y values
                         else
                         {
-                            neighbour = GridCalculations.CalcNeighbourField(p, nFace, size);
+                            neighbour = GridCalculations.CalcNeighbourField(x, y, p.face, nFace, size);
                         }
                         //
 

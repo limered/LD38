@@ -11,6 +11,7 @@ using Assets.Systems.Movement;
 using UnityEngine;
 using UnityEngine.UI;
 using Assets.Systems.Pathfinding;
+using Assets.Systems.GameOfLife;
 
 namespace Assets.SystemBase
 {
@@ -57,6 +58,8 @@ namespace Assets.SystemBase
 
             RegisterSystem(new CubalPositioningSystem()); // 20
             RegisterSystem(new NPCMovementSystem()); //21
+
+            RegisterSystem(new GameOfLifeSystem()); //33
 
             #endregion System Registration
 
