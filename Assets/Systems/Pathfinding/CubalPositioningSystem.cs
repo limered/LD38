@@ -90,13 +90,17 @@ namespace Assets.Systems.Pathfinding
                 grid.OnGridCalculated()
                 .ContinueWith(
                     component.UpdateAsObservable()
-                    .Sample(TimeSpan.FromMilliseconds(10))
+                    .Sample(TimeSpan.FromMilliseconds(50))
                     .Select(_ => grid)
                 )
             )
             .Subscribe(grid =>
             {
-                var pos = grid.GetPosition(component.transform.position, component.CurrentPosition.Value != null ? component.CurrentPosition.Value.face : (CubeFace?)null);
+                var lastFace = (grid.transform.position - component.transform.position).sqrMagnitude <  grid.extend.Value * 10 * grid.extend.Value * 10
+                    ? component.CurrentPosition.Value != null ? component.CurrentPosition.Value.face : (CubeFace?)null
+                    : (CubeFace?)null;
+                    
+                var pos = grid.GetPosition(component.transform.position, lastFace);
                 if (pos != component.CurrentPosition.Value)
                 {   
                     component.simplePosition = pos.Simple;

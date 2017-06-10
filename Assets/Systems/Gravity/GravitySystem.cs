@@ -65,8 +65,8 @@ namespace Assets.Systems.Gravity
 
                  if(height < component.Height)
                     rigidbody.AddForce(force);
-                //  else if(height > component.Height*2f)
-                //     rigidbody.AddForce(-force);
+                 else if(height > component.Height*2f && !component.onlyPushUp)
+                    rigidbody.AddForce(-force);
              })
             .AddTo(component);
         }
