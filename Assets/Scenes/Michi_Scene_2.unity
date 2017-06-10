@@ -209,7 +209,7 @@ MonoBehaviour:
   labelColor: {r: 1, g: 1, b: 1, a: 1}
   renderGrid: 1
   showGrid: 000000000100000002000000030000000400000005000000
-  showNeighbourMesh: 0
+  showNeighbourMesh: 1
   neighbourLineLength: 0.71
   recalculateLabelOffset: 0
 --- !u!114 &259961718
@@ -224,19 +224,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cellPrefab: {fileID: 1926280759504634, guid: cdaf0035077a1477a854f9de29e60591, type: 2}
-  initialCells:
-  - x: 4
-    y: 5
-    outOfBounds: 0
-    face: 0
-  - x: 5
-    y: 5
-    outOfBounds: 0
-    face: 0
-  - x: 6
-    y: 5
-    outOfBounds: 0
-    face: 0
+  initialCells: []
   stepTime: 1
 --- !u!1001 &733602177
 Prefab:

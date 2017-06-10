@@ -90,7 +90,7 @@ namespace Assets.Systems.Pathfinding
                 grid.OnGridCalculated()
                 .ContinueWith(
                     component.UpdateAsObservable()
-                    .Sample(TimeSpan.FromMilliseconds(100))
+                    .Sample(TimeSpan.FromMilliseconds(10))
                     .Select(_ => grid)
                 )
             )
@@ -116,7 +116,6 @@ namespace Assets.Systems.Pathfinding
                     }
                     
                     component.CurrentPosition.SetValueAndForceNotify(pos);
-                    Debug.Log(component.CurrentPosition.Value.outOfBounds);
                 }
             })
             .AddTo(component);

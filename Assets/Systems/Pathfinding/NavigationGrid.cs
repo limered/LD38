@@ -110,7 +110,7 @@ namespace Assets.Systems.Pathfinding
 
         private float GetDistanceToFace(Vector3 worldPos, CubeFace face)
         {
-            return (worldPos - face.ToUnitVector()).magnitude;//Vector3.Dot(worldPos, face.ToUnitVector());
+            return (worldPos - (face.ToUnitVector()*extend.Value)).sqrMagnitude;  //(worldPos - (face.ToUnitVector()*extend.Value)).magnitude;  //Vector3.Dot(worldPos, face.Opposite().ToUnitVector());
         }
 
         private Vector3 drawUpperLeft, drawEX, drawEY;
@@ -161,7 +161,8 @@ namespace Assets.Systems.Pathfinding
                 short lastFaceX, lastFaceY, nearestFaceX, nearestFaceY; 
                 var lastFacePos = GetPositionOnFace(oldFace.Value, worldPosition, out lastFaceX, out lastFaceY); 
                 var nearestFacePos = GetPositionOnFace(nearestFace, worldPosition, out nearestFaceX, out nearestFaceY); 
- 
+                Debug.Log(nearestFace+" "+ nearestFacePos.outOfBounds);
+
                 if(nearestFacePos.outOfBounds == OutOfBounds.Nope) 
                     return nearestFacePos; 
                 else     
@@ -215,14 +216,14 @@ namespace Assets.Systems.Pathfinding
 
             //
             var pE = new Vector2(eX.x * p.x + eX.y * p.y, eY.x * p.x + eY.y * p.y);
-            x = (short)((pE / extend.Value).x * size);
-            y = (short)((pE / extend.Value).y * size);
+            x = (short)(pE.x / extend.Value * size);
+            y = (short)(pE.y / extend.Value * size);
 
             var oob = OutOfBounds.Nope;
             if (x < 0) oob |= OutOfBounds.X_Below_0;
             if (x >= size) oob |= OutOfBounds.X_Over_Max;
             if (y < 0) oob |= OutOfBounds.Y_Below_0;
-            if (y >= size) oob |= OutOfBounds.Y_Over_Max;
+            if (y >= extend.Value) oob |= OutOfBounds.Y_Over_Max;
 
             return new Position(
                 (short)Mathf.Max(0, Mathf.Min(size - 1, x)),
