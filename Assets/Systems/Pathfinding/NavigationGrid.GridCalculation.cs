@@ -125,5 +125,24 @@ namespace Assets.Systems.Pathfinding
                 return faceA + "<->" + faceB;
             }
         }
+
+
+        private static Neighbour[] allNeighbourDirections; 
+        public static Neighbour[] AllNeighbourDirections {get{
+            if(allNeighbourDirections == null) {
+                allNeighbourDirections = new Neighbour[]{
+                    Neighbour.Up,
+                    Neighbour.UpperRight,
+                    Neighbour.Right,
+                    Neighbour.LowerRight,
+                    Neighbour.Down,
+                    Neighbour.LowerLeft,
+                    Neighbour.Left,
+                    Neighbour.UpperLeft
+                };
+            }
+
+            return allNeighbourDirections;
+        }}
     }
 }

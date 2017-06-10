@@ -9,7 +9,7 @@ namespace Assets.Systems.Movement
 {
     [RequireComponent(typeof(Rigidbody))]
     [RequireComponent(typeof(TrackPositionComponent))]
-    [RequireComponent(typeof(CanMoveOnPathComponent))]
+    [RequireComponent(typeof(CanCalculateFlowFieldComponent))]
     public class MoveStupidForwardComponent : GameComponent
     {
         public ReactiveProperty<SimplePosition> goal = new ReactiveProperty<SimplePosition>();

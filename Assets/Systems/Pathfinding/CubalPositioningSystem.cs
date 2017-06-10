@@ -10,59 +10,91 @@ using System.Linq;
 
 namespace Assets.Systems.Pathfinding
 {
-    public class CubalPositioningSystem : GameSystem<CanMoveOnPathComponent, TrackPositionComponent>
+    public class CubalPositioningSystem : GameSystem<CanMoveOnPathComponent, CanCalculateFlowFieldComponent, TrackPositionComponent>
     {
         public override int Priority { get { return 20; } }
 
-        public override void Register(CanMoveOnPathComponent component)
+        public override void Register(CanCalculateFlowFieldComponent component)
+        {
+            NavigationGrid.ResolveGridAndWaitTilItFinishedCalculating(grid => Register(component, grid))
+            .AddTo(component);
+        }
+        private void Register(CanCalculateFlowFieldComponent component, NavigationGrid grid)
         {
             var tracker = component.GetComponent<TrackPositionComponent>();
-            IoC.OnResolve<NavigationGrid, Tuple<NavigationGrid, Position>>(
-                grid =>
-                    grid.OnGridCalculated()
-                    .ContinueWith(
-                        component.Destination
-                        .Where(x => x.HasValue)
-                        .Select(x => grid.gridLUT[x.Value.Combine(grid.size)])
-                        .Where(x => !tracker.CurrentPosition.HasValue || x != tracker.CurrentPosition.Value)
-                    )
-                    .Select(x => new Tuple<NavigationGrid, Position>(grid, x))
-            )
+
+            component.Destination
+            .Where(x => x.HasValue)
+            .Select(x => grid.gridLUT[x.Value.Combine(grid.size)])
+            .Where(x => !tracker.CurrentPosition.HasValue || x != tracker.CurrentPosition.Value)
             .Subscribe(
-                gridAndDestination =>
-                component.CurrentPath.SetValueAndForceNotify(gridAndDestination.Item1.FindPath(gridAndDestination.Item1.GetPosition(component.transform.position, null), gridAndDestination.Item2))
+                destination =>
+                {
+                    component.currentDestination = destination.Simple;
+                    component.CurrentFlowField.SetValueAndForceNotify(grid.GetVectorField(destination));
+                }
+            )
+            .AddTo(component);
+        }
+
+        public override void Register(CanMoveOnPathComponent component)
+        {
+            NavigationGrid.ResolveGridAndWaitTilItFinishedCalculating(grid => Register(component, grid))
+            .AddTo(component);
+        }
+
+        private void Register(CanMoveOnPathComponent component, NavigationGrid grid)
+        {
+            var tracker = component.GetComponent<TrackPositionComponent>();
+
+            component.Destination
+            .Where(x => x.HasValue)
+            .Select(x => grid.gridLUT[x.Value.Combine(grid.size)])
+            .Where(x => !tracker.CurrentPosition.HasValue || x != tracker.CurrentPosition.Value)
+            .Subscribe(
+                destination =>
+                component.CurrentPath.SetValueAndForceNotify(grid.FindPath(grid.GetPosition(component.transform.position, null), destination))
             )
             .AddTo(component);
 
-            IoC.OnResolve<NavigationGrid, Tuple<NavigationGrid, List<Position>>>(
-                grid =>
-                grid.OnGridCalculated()
-                .ContinueWith(
-                    component.CurrentPath
-                    .Where(x => x != null)
-                )
-                .Select(x => new Tuple<NavigationGrid, List<Position>>(grid, x))
-            )
-            .Subscribe(gridAndPositions =>
+            component.CurrentPath
+            .Where(x => x != null)
+            .Subscribe(newPath =>
             {
                 component.MovingSubscription.Disposable = component
                     .FixedUpdateAsObservable()
-                    .TakeWhile(_ => tracker.CurrentPosition.HasValue && component.Destination.Value.HasValue && !component.Destination.Value.Value.Equals(tracker.CurrentPosition.Value))
+                    .Where(_ => tracker.CurrentPosition.Value != null)
+                    //.TakeWhile(_ => tracker.CurrentPosition.Value != null && component.Destination.Value.HasValue && !component.Destination.Value.Value.Equals(tracker.simplePosition))
                     .Subscribe(_ =>
                     {
                         if (component.CurrentPath.Value == null || component.CurrentPath.Value.Count == 0)
                         {
                             component.MovingSubscription.Disposable = null;
+                            component.CurrentDirection.SetValueAndForceNotify(Vector3.zero);
+                            Debug.Log("no path set");
                         }
                         else
                         {
-                            if (IsOnPosition(gridAndPositions.Item1, component.transform.position, component.CurrentPath.Value[0])) 
+                            if (tracker.simplePosition.Equals(component.nextPostionOnPath))
+                            {
+                                Debug.Log("reached next field " + component.CurrentPath.Value[0]);
                                 component.CurrentPath.Value.RemoveAt(0);
+                            }
 
-                            if(component.CurrentPath.Value.Count > 0)
-                                component.CurrentDirection.SetValueAndForceNotify((gridAndPositions.Item1.grid[component.CurrentPath.Value[0]] - gridAndPositions.Item1.grid[tracker.CurrentPosition.Value]).normalized);
+                            if (component.CurrentPath.Value.Count > 0)
+                            {
+                                if(!component.nextPostionOnPath.Equals(component.CurrentPath.Value[0].Simple)) Debug.Log("next field "+component.CurrentPath.Value[0].Simple);
+                                component.nextPostionOnPath = component.CurrentPath.Value[0].Simple;
+                                component.CurrentDirection.SetValueAndForceNotify((grid.grid[component.CurrentPath.Value[0]] - grid.grid[tracker.CurrentPosition.Value]).normalized);
+                            }
+                            else
+                            {
+                                Debug.Log("reached destination " + component.Destination.Value);
+                                component.nextPostionOnPath = default(SimplePosition);
+                                component.CurrentDirection.SetValueAndForceNotify(Vector3.zero);
+                                component.MovingSubscription.Disposable = null;
+                            }
                         }
-                        
                     },
                     () => component.MovingSubscription.Disposable = null);
             })
@@ -78,31 +110,25 @@ namespace Assets.Systems.Pathfinding
             .AddTo(component);
         }
 
-        private bool IsOnPosition(NavigationGrid grid, Vector3 myPos, Position pos)
-        {
-            return (myPos - grid.grid[pos]).sqrMagnitude > (grid.fieldSize / 2f) * (grid.fieldSize / 2f);
-        }
-
         public override void Register(TrackPositionComponent component)
         {
-            IoC.OnResolve<NavigationGrid, NavigationGrid>(
-                grid =>
-                grid.OnGridCalculated()
-                .ContinueWith(
-                    component.UpdateAsObservable()
-                    .Sample(TimeSpan.FromMilliseconds(50))
-                    .Select(_ => grid)
-                )
-            )
-            .Subscribe(grid =>
+            NavigationGrid.ResolveGridAndWaitTilItFinishedCalculating(grid => Register(component, grid))
+            .AddTo(component);
+        }
+
+        private void Register(TrackPositionComponent component, NavigationGrid grid)
+        {
+            component.UpdateAsObservable()
+            .Sample(TimeSpan.FromMilliseconds(50))
+            .Subscribe(_ =>
             {
-                var lastFace = (grid.transform.position - component.transform.position).sqrMagnitude <  grid.extend.Value * 10 * grid.extend.Value * 10
+                var lastFace = (grid.transform.position - component.transform.position).sqrMagnitude < grid.extend.Value * 5 * grid.extend.Value * 5
                     ? component.CurrentPosition.Value != null ? component.CurrentPosition.Value.face : (CubeFace?)null
                     : (CubeFace?)null;
-                    
+
                 var pos = grid.GetPosition(component.transform.position, lastFace);
                 if (pos != component.CurrentPosition.Value)
-                {   
+                {
                     component.simplePosition = pos.Simple;
                     try
                     {
@@ -112,7 +138,7 @@ namespace Assets.Systems.Pathfinding
                     {
                         Debug.LogError("Position " + pos + " not found on grid (" + ex.Message + ")");
                     }
-                    
+
                     component.CurrentPosition.SetValueAndForceNotify(pos);
                 }
             })

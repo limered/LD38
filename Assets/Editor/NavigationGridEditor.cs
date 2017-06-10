@@ -43,7 +43,7 @@ public class NavigationGridEditor : Editor
                 rndPositions2.Enqueue(pos1);
                 var pos2 = rndPositions.Dequeue();
                 rndPositions2.Enqueue(pos2);
-                grid.GetVectorField(pos1, pos2);
+                grid.GetVectorField(pos2);
             }
             Debug.Log("Calculated "+amount+" Vectorfields in "+(System.DateTime.Now-startTime).TotalMilliseconds+"ms");
 

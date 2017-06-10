@@ -20,6 +20,7 @@ namespace Assets.Systems.Pathfinding
         [Header(DebugUtils.DefaultDebugHeader)]
         public SimplePosition currentDestination;
         public int distanceToDestination;
+        public SimplePosition nextPostionOnPath;
 
         private NavigationGrid grid;
 
