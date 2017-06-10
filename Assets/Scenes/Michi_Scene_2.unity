@@ -209,7 +209,7 @@ MonoBehaviour:
   labelColor: {r: 1, g: 1, b: 1, a: 1}
   renderGrid: 1
   showGrid: 000000000100000002000000030000000400000005000000
-  showNeighbourMesh: 1
+  showNeighbourMesh: 0
   neighbourLineLength: 0.71
   recalculateLabelOffset: 0
 --- !u!114 &259961718
@@ -587,11 +587,11 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4607012874606016, guid: 1b63970bcbcbe4dca940023268678fa1, type: 2}
       propertyPath: m_LocalPosition.y
-      value: 22.36
+      value: 31.4
       objectReference: {fileID: 0}
     - target: {fileID: 4607012874606016, guid: 1b63970bcbcbe4dca940023268678fa1, type: 2}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 2.56
       objectReference: {fileID: 0}
     - target: {fileID: 4607012874606016, guid: 1b63970bcbcbe4dca940023268678fa1, type: 2}
       propertyPath: m_LocalRotation.x
@@ -612,6 +612,16 @@ Prefab:
     - target: {fileID: 4607012874606016, guid: 1b63970bcbcbe4dca940023268678fa1, type: 2}
       propertyPath: m_RootOrder
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 54250768940993706, guid: 1b63970bcbcbe4dca940023268678fa1,
+        type: 2}
+      propertyPath: m_Drag
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 54250768940993706, guid: 1b63970bcbcbe4dca940023268678fa1,
+        type: 2}
+      propertyPath: m_AngularDrag
+      value: 0.02
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 1b63970bcbcbe4dca940023268678fa1, type: 2}

@@ -8,8 +8,9 @@ namespace Assets.Systems.Pathfinding
 {
     public class TrackPositionComponent : GameComponent
     {
-        public CubeFace? unsureAboutItsPositionSoRememberingOldFace;
         public readonly ReactiveProperty<Position> CurrentPosition = new ReactiveProperty<Position>();
+        
+        [Header(DebugUtils.DefaultDebugHeader)]
         public SimplePosition simplePosition;
         public Vector3 fieldsWorldPosition;
 

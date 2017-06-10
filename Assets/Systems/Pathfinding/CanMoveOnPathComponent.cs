@@ -11,14 +11,16 @@ namespace Assets.Systems.Pathfinding
     {
         public readonly SerialDisposable MovingSubscription = new SerialDisposable();
         public ReactiveProperty<SimplePosition?> Destination = new ReactiveProperty<SimplePosition?>();
-        public SimplePosition DebugCurrentDestination;
-        public int DebugDistanceToDestination;
         public ReactiveProperty<List<Position>> CurrentPath = new ReactiveProperty<List<Position>>();
         public Vector3ReactiveProperty CurrentDirection = new Vector3ReactiveProperty();
         public readonly SerialDisposable CurrentMovement = new SerialDisposable();
 
-
+        
         #region Debug
+        [Header(DebugUtils.DefaultDebugHeader)]
+        public SimplePosition currentDestination;
+        public int distanceToDestination;
+
         private NavigationGrid grid;
 
         protected override void OnStart()

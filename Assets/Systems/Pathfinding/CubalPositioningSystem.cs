@@ -72,8 +72,8 @@ namespace Assets.Systems.Pathfinding
             .Where(x => x != null && x.Count > 0)
             .Subscribe(x =>
             {
-                component.DebugCurrentDestination = x[x.Count - 1].Simple;
-                component.DebugDistanceToDestination = x.Count;
+                component.currentDestination = x[x.Count - 1].Simple;
+                component.distanceToDestination = x.Count;
             })
             .AddTo(component);
         }
@@ -98,13 +98,7 @@ namespace Assets.Systems.Pathfinding
             {
                 var pos = grid.GetPosition(component.transform.position, component.CurrentPosition.Value != null ? component.CurrentPosition.Value.face : (CubeFace?)null);
                 if (pos != component.CurrentPosition.Value)
-                {
-                    var realPos = grid.gridLUT[pos.Combined];
-                    for(var i=0; i<realPos.neighbours.Length; i++) 
-                    {
-                        pos.neighbours[i] = realPos.neighbours[i];
-                    }
-                    
+                {   
                     component.simplePosition = pos.Simple;
                     try
                     {

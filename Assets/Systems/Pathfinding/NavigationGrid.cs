@@ -116,61 +116,106 @@ namespace Assets.Systems.Pathfinding
         private Vector3 drawUpperLeft, drawEX, drawEY;
         public Position GetPosition(Vector3 worldPosition, CubeFace? oldFace)
         {
-            var nearestFace = CubeFace.Up;
-            var nearestValue = GetDistanceToFace(worldPosition, CubeFace.Up);
-            var temp = 0f;
+            var nearestFace = oldFace.HasValue ? oldFace.Value : CubeFace.Up /*may cause problems...*/;
+            //var nearestValue = GetDistanceToFace(worldPosition, CubeFace.Up);
+            Position temp = null;
+            short nearestFaceX, nearestFaceY; 
+            Position resultPos = GetPositionOnFace(nearestFace, worldPosition, out nearestFaceX, out nearestFaceY); 
 
-            if (nearestValue > (temp = GetDistanceToFace(worldPosition, CubeFace.Up)))
+            if(resultPos.outOfBounds != OutOfBounds.Nope)
             {
-                nearestFace = CubeFace.Up;
-                nearestValue = temp;
-            }
-            if (nearestValue > (temp = GetDistanceToFace(worldPosition, CubeFace.Down)))
-            {
-                nearestFace = CubeFace.Down;
-                nearestValue = temp;
-            }
-            if (nearestValue > (temp = GetDistanceToFace(worldPosition, CubeFace.Back)))
-            {
-                nearestFace = CubeFace.Back;
-                nearestValue = temp;
-            }
-            if (nearestValue > (temp = GetDistanceToFace(worldPosition, CubeFace.Forward)))
-            {
-                nearestFace = CubeFace.Forward;
-                nearestValue = temp;
-            }
-            if (nearestValue > (temp = GetDistanceToFace(worldPosition, CubeFace.Left)))
-            {
-                nearestFace = CubeFace.Left;
-                nearestValue = temp;
-            }
-            if (nearestValue > (temp = GetDistanceToFace(worldPosition, CubeFace.Right)))
-            {
-                nearestFace = CubeFace.Right;
-                nearestValue = temp;
+                if(
+                    resultPos.outOfBounds == OutOfBounds.X_Below_0 
+                && (temp = GetPositionOnFace(nearestFace.XBelowZero(), worldPosition, out nearestFaceX, out nearestFaceY)).outOfBounds == OutOfBounds.Nope
+                )
+                {
+                    nearestFace = nearestFace.XBelowZero();
+                    resultPos = temp;
+                }
+
+                if(
+                    resultPos.outOfBounds == OutOfBounds.X_Over_Max 
+                && (temp = GetPositionOnFace(nearestFace.XOverflow(), worldPosition, out nearestFaceX, out nearestFaceY)).outOfBounds == OutOfBounds.Nope
+                )
+                {
+                    nearestFace = nearestFace.XOverflow();
+                    resultPos = temp;
+                }
+
+                if(
+                    resultPos.outOfBounds == OutOfBounds.Y_Below_0 
+                && (temp = GetPositionOnFace(nearestFace.YBelowZero(), worldPosition, out nearestFaceX, out nearestFaceY)).outOfBounds == OutOfBounds.Nope
+                )
+                {
+                    nearestFace = nearestFace.YBelowZero();
+                    resultPos = temp;
+                }
+
+                if(
+                    resultPos.outOfBounds == OutOfBounds.Y_Over_Max 
+                && (temp = GetPositionOnFace(nearestFace.YOverflow(), worldPosition, out nearestFaceX, out nearestFaceY)).outOfBounds == OutOfBounds.Nope
+                )
+                {
+                    nearestFace = nearestFace.YOverflow();
+                    resultPos = temp;
+                }
+
+                // if ((temp = GetPositionOnFace(CubeFace.Up, worldPosition, out nearestFaceX, out nearestFaceY)).outOfBounds == OutOfBounds.Nope)
+                // {
+                //     nearestFace = CubeFace.Up;
+                //     resultPos = temp;
+                // }
+                // if ((temp = GetPositionOnFace(CubeFace.Down, worldPosition, out nearestFaceX, out nearestFaceY)).outOfBounds == OutOfBounds.Nope)
+                // {
+                //     nearestFace = CubeFace.Down;
+                //     resultPos = temp;
+                // }
+                // if ((temp = GetPositionOnFace(CubeFace.Left, worldPosition, out nearestFaceX, out nearestFaceY)).outOfBounds == OutOfBounds.Nope)
+                // {
+                //     nearestFace = CubeFace.Left;
+                //     resultPos = temp;
+                // }
+                // if ((temp = GetPositionOnFace(CubeFace.Right, worldPosition, out nearestFaceX, out nearestFaceY)).outOfBounds == OutOfBounds.Nope)
+                // {
+                //     nearestFace = CubeFace.Right;
+                //     resultPos = temp;
+                // }
+                // if ((temp = GetPositionOnFace(CubeFace.Forward, worldPosition, out nearestFaceX, out nearestFaceY)).outOfBounds == OutOfBounds.Nope)
+                // {
+                //     nearestFace = CubeFace.Forward;
+                //     resultPos = temp;
+                // }
+                // if ((temp = GetPositionOnFace(CubeFace.Back, worldPosition, out nearestFaceX, out nearestFaceY)).outOfBounds == OutOfBounds.Nope)
+                // {
+                //     nearestFace = CubeFace.Back;
+                //     resultPos = temp;
+                // }
             }
 
+            // if(!oldFace.HasValue || oldFace.HasValue && nearestFace == oldFace.Value){ 
+            //     short x, y; 
+            //     return GetPositionOnFace(nearestFace, worldPosition, out x, out y); 
+            // } 
+            // else 
+            // { 
+            //     short lastFaceX, lastFaceY; 
+            //     var lastFacePos = GetPositionOnFace(oldFace.Value, worldPosition, out lastFaceX, out lastFaceY); 
+            //     var nearestFacePos = GetPositionOnFace(nearestFace, worldPosition, out nearestFaceX, out nearestFaceY); 
+            //     Debug.Log(nearestFace+" "+ nearestFacePos.outOfBounds);
 
-            if(!oldFace.HasValue || oldFace.HasValue && nearestFace == oldFace.Value){ 
-                short x, y; 
-                return GetPositionOnFace(nearestFace, worldPosition, out x, out y); 
-            } 
-            else 
-            { 
-                short lastFaceX, lastFaceY, nearestFaceX, nearestFaceY; 
-                var lastFacePos = GetPositionOnFace(oldFace.Value, worldPosition, out lastFaceX, out lastFaceY); 
-                var nearestFacePos = GetPositionOnFace(nearestFace, worldPosition, out nearestFaceX, out nearestFaceY); 
-                Debug.Log(nearestFace+" "+ nearestFacePos.outOfBounds);
+            //     if(nearestFacePos.outOfBounds == OutOfBounds.Nope) 
+            //         return nearestFacePos; 
+            //     else     
+            //         return lastFacePos; 
+            // } 
 
-                if(nearestFacePos.outOfBounds == OutOfBounds.Nope) 
-                    return nearestFacePos; 
-                else     
-                    return lastFacePos; 
-            } 
+            var realPos = gridLUT[resultPos.Combined];
+            for(var i=0; i<realPos.neighbours.Length; i++) 
+            {
+                resultPos.neighbours[i] = realPos.neighbours[i];
+            }
 
-            // short x, y;
-            // return GetPositionOnFace(nearestFace, worldPosition, out x, out y);
+            return resultPos;
         }
 
         private Position GetPositionOnFace(CubeFace face, Vector3 worldPosition, out short x, out short y)
@@ -220,10 +265,10 @@ namespace Assets.Systems.Pathfinding
             y = (short)(pE.y / extend.Value * size);
 
             var oob = OutOfBounds.Nope;
-            if (x < 0) oob |= OutOfBounds.X_Below_0;
-            if (x >= size) oob |= OutOfBounds.X_Over_Max;
-            if (y < 0) oob |= OutOfBounds.Y_Below_0;
-            if (y >= extend.Value) oob |= OutOfBounds.Y_Over_Max;
+            if (pE.x < 0) oob |= OutOfBounds.X_Below_0;
+            if (pE.x > extend.Value) oob |= OutOfBounds.X_Over_Max;
+            if (pE.y < 0) oob |= OutOfBounds.Y_Below_0;
+            if (pE.y > extend.Value) oob |= OutOfBounds.Y_Over_Max;
 
             return new Position(
                 (short)Mathf.Max(0, Mathf.Min(size - 1, x)),
