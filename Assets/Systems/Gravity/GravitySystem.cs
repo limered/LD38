@@ -39,7 +39,7 @@ namespace Assets.Systems.Gravity
 
         private void UpdateGravity(GravityComponent comp, Position currentPos, Rigidbody rigidBody, NavigationGrid grid)
         {
-            var gravVec = currentPos.face.Opposite().ToUnitVector() * _config.GravityForce;
+            var gravVec = currentPos.face.Opposite().Up() * _config.GravityForce;
 
             Debug.DrawRay(comp.transform.position, gravVec, Color.green);
             rigidBody.AddForce(gravVec);
@@ -59,7 +59,7 @@ namespace Assets.Systems.Gravity
             .Where(_ => posComponent.CurrentPosition.HasValue)
             .Subscribe(_ =>
              {
-                 var force = posComponent.simplePosition.face.ToUnitVector() * component.BounceForce.Between;
+                 var force = posComponent.simplePosition.face.Up() * component.BounceForce.Between;
                  var height = grid.GetHeight(component.transform.position, posComponent.CurrentPosition.Value);
                  component.currentHeight = height;
 

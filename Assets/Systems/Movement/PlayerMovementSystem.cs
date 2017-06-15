@@ -132,7 +132,7 @@ namespace Assets.Systems.Movement
         private void FixRotation(PlayerComponent player, CubeFace currentFace)
         {
             const float t = 1f / 10;
-            var targetRotation = Quaternion.AngleAxis(Vector3.Angle(currentFace.ToUnitVector(), Vector3.up), Vector3.forward);
+            var targetRotation = Quaternion.AngleAxis(Vector3.Angle(currentFace.Up(), Vector3.up), Vector3.forward);
             var rotationStep = Quaternion.Slerp(player.gameObject.transform.localRotation, targetRotation, t);
 
             player.gameObject.transform.localRotation = rotationStep;

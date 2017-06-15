@@ -31,7 +31,7 @@ namespace Assets.Systems.Pathfinding
                 destination =>
                 {
                     component.currentDestination = destination.Simple;
-                    component.CurrentFlowField.SetValueAndForceNotify(grid.GetVectorField(destination));
+                    component.CurrentFlowField.SetValueAndForceNotify(grid.GetVectorField(destination, 50));
                 }
             )
             .AddTo(component);

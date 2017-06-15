@@ -92,11 +92,11 @@ public class NavigationGridEditor : Editor
         coordinateStyle.normal.textColor = Color.red;
         coordinateStyle.fontSize = 10;
 
-        // if (grid.showGrid != null && grid.showGrid.Length > 0)
-        //     foreach (var gf in grid.GridFields)
-        //     {
-        //         if (gf.Key != null && grid.renderGrid && grid.showGrid.Contains(gf.Key.face)) Handles.Label(gf.Value, gf.Key.ToString(), coordinateStyle);
-        //     }
+        if (grid.showGrid != null && grid.showGrid.Length > 0 && grid.showCoorniates)
+            foreach (var gf in grid.GridFields)
+            {
+                if (gf.Key != null && grid.renderGrid && grid.showGrid.Contains(gf.Key.face)) Handles.Label(gf.Value, gf.Key.ToString(), coordinateStyle);
+            }
     }
 
     private static void DrawFaceString(CubeFace face)
@@ -107,7 +107,7 @@ public class NavigationGridEditor : Editor
         faceStyle.fontStyle = FontStyle.Bold;
 
         //(CubeFace.Right.ToUnitVector()*grid.extend.Value/2f)
-        var pos = face.ToUnitVector() * (grid.extend.Value / 2f + grid.labelDistance) + grid.offset + grid.labelOffset;
+        var pos = face.Up() * (grid.extend.Value / 2f + grid.labelDistance) + grid.offset + grid.labelOffset;
         Handles.Label(pos, face.ToString(), faceStyle);
     }
 }

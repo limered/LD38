@@ -7,23 +7,31 @@ namespace Assets.Systems.Pathfinding
     public static class GridCalculations
     {
         private static readonly Dictionary<CubeFaceNeighbours, Func<short, short, int, CubeFace, int>> neighbourConverters = new Dictionary<CubeFaceNeighbours, Func<short, short, int, CubeFace, int>>(){
-            {new CubeFaceNeighbours(CubeFace.Up, CubeFace.Right, true), (x, y, s, f) => C(x, y, s, f)},
-            {new CubeFaceNeighbours(CubeFace.Up, CubeFace.Forward, true), (x, y, s, f) => C(x, y, s, f)},
-            {new CubeFaceNeighbours(CubeFace.Up, CubeFace.Left, true), (x, y, s, f) => C(0, y.I(s), s, f)},
-            {new CubeFaceNeighbours(CubeFace.Up, CubeFace.Back, true), (x, y, s, f) => C(x.I(s), y, s, f)},
+            // UP neighbours
+            {new CubeFaceNeighbours(CubeFace.Up, CubeFace.Right, true), (x, y, s, f)      => C(y.I(s), x.I(s), s, f)},
+            {new CubeFaceNeighbours(CubeFace.Up, CubeFace.Forward, true), (x, y, s, f)    => C(y.I(s), x.I(s), s, f)},
+            {new CubeFaceNeighbours(CubeFace.Up, CubeFace.Back, false), (x, y, s, f)       => C(y.I(s), x, s, f)},
+            {new CubeFaceNeighbours(CubeFace.Back, CubeFace.Up, false), (x, y, s, f)       => C(y, x.I(s), s, f)},
+            {new CubeFaceNeighbours(CubeFace.Up, CubeFace.Left, false), (x, y, s, f)      => C(y, x.I(s), s, f)},
+            {new CubeFaceNeighbours(CubeFace.Left, CubeFace.Up, false), (x, y, s, f)      => C(y.I(s), x, s, f)},
 
-            {new CubeFaceNeighbours(CubeFace.Down, CubeFace.Right, true), (x, y, s, f) => C(0, y.I(s), s, f)},
-            {new CubeFaceNeighbours(CubeFace.Down, CubeFace.Forward, true), (x, y, s, f) => C(x.I(s), y, s, f)},
-            {new CubeFaceNeighbours(CubeFace.Down, CubeFace.Left, true), (x, y, s, f) => C(x, y, s, f)},
-            {new CubeFaceNeighbours(CubeFace.Down, CubeFace.Back, true), (x, y, s, f) => C(x, y, s, f)},
+            // DOWN neighbours
+            {new CubeFaceNeighbours(CubeFace.Down, CubeFace.Right, false), (x, y, s, f)    => C(y, x.I(s), s, f)},
+            {new CubeFaceNeighbours(CubeFace.Right, CubeFace.Down, false), (x, y, s, f)    => C(y.I(s), x, s, f)},
+            {new CubeFaceNeighbours(CubeFace.Down, CubeFace.Forward, false), (x, y, s, f)  => C(y.I(s), x, s, f)},
+            {new CubeFaceNeighbours(CubeFace.Forward, CubeFace.Down, false), (x, y, s, f)  => C(y, x.I(s), s, f)},
+            {new CubeFaceNeighbours(CubeFace.Down, CubeFace.Left, true), (x, y, s, f)     => C(y.I(s), x.I(s), s, f)},
+            {new CubeFaceNeighbours(CubeFace.Down, CubeFace.Back, true), (x, y, s, f)     => C(y.I(s), x.I(s), s, f)},
 
+            // FORWARD neighbours
             {new CubeFaceNeighbours(CubeFace.Forward, CubeFace.Right, true), (x, y, s, f) => C(y, x, s, f)},
-            {new CubeFaceNeighbours(CubeFace.Forward, CubeFace.Left, false), (x, y, s, f) => C(y.I(s), 0, s, f)},
-            {new CubeFaceNeighbours(CubeFace.Left, CubeFace.Forward, false), (x, y, s, f) => C(0, x.I(s), s, f)},
+            {new CubeFaceNeighbours(CubeFace.Forward, CubeFace.Left, false), (x, y, s, f) => C(y, x.I(s), s, f)},
+            {new CubeFaceNeighbours(CubeFace.Left, CubeFace.Forward, false), (x, y, s, f) => C(y.I(s), x, s, f)},
 
-            {new CubeFaceNeighbours(CubeFace.Back, CubeFace.Left, true), (x, y, s, f) => C(y, x, s, f)},
-            {new CubeFaceNeighbours(CubeFace.Back, CubeFace.Right, false), (x, y, s, f) => C(y.I(s), 0, s, f)},
-            {new CubeFaceNeighbours(CubeFace.Right, CubeFace.Back, false), (x, y, s, f) => C(0, x.I(s), s, f)},
+            // BACK neighbours
+            {new CubeFaceNeighbours(CubeFace.Back, CubeFace.Left, true), (x, y, s, f)     => C(y, x, s, f)},
+            {new CubeFaceNeighbours(CubeFace.Back, CubeFace.Right, false), (x, y, s, f)   => C(y, x.I(s), s, f)},
+            {new CubeFaceNeighbours(CubeFace.Right, CubeFace.Back, false), (x, y, s, f)   => C(y.I(s), x, s, f)},
         };
 
         ///invert

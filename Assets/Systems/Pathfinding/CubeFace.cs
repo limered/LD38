@@ -15,7 +15,7 @@ namespace Assets.Systems.Pathfinding
 
     public static class CubeFaceExtensions
     {
-        public static Vector3 ToUnitVector(this CubeFace cubeFace)
+        public static Vector3 Up(this CubeFace cubeFace)
         {
             switch (cubeFace)
             {
@@ -30,45 +30,57 @@ namespace Assets.Systems.Pathfinding
             }
         }
 
-        public static Vector3 ToUpperLeftUnitVector(this CubeFace cubeFace)
+        public static Vector3 Down(this CubeFace face)
         {
-            var one = new Vector3(1, 1, 1);
-            switch (cubeFace)
+            return -face.Up();
+        }
+
+        public static Vector3 Forward(this CubeFace face)
+        {
+            switch (face)
             {
-                case CubeFace.Up: return (cubeFace.ToUnitVector() - one).normalized;
-                case CubeFace.Down: return -CubeFace.Up.ToUpperLeftUnitVector();
-                case CubeFace.Right: return (cubeFace.ToUnitVector() - one).normalized;
-                case CubeFace.Left: return -CubeFace.Right.ToUpperLeftUnitVector();
-                case CubeFace.Forward: return (cubeFace.ToUnitVector() - one).normalized;
-                case CubeFace.Back: return -CubeFace.Forward.ToUpperLeftUnitVector();
+                case CubeFace.Up: return Vector3.forward;
+                case CubeFace.Down: return Vector3.back;
+                case CubeFace.Right: return Vector3.down;
+                case CubeFace.Left: return Vector3.up;
+                case CubeFace.Forward: return Vector3.left;
+                case CubeFace.Back: return Vector3.right;
 
                 default: throw new NotImplementedException("wtf òÓ");
             }
         }
 
-        public static Vector3 ToDirectionVector(this CubeFace face, float angle, bool degrees=true)
+        public static Vector3 Back(this CubeFace face)
         {
-            var forward = face.ToUpperLeftUnitVector().RemoveComponents(true, false).normalized;
-            return Quaternion.AngleAxis(degrees ? angle * Mathf.Rad2Deg : angle, face.ToUnitVector()) * forward;
+            return -face.Forward();
         }
 
-        public static Vector3 RemoveComponents(this Vector3 v, bool removeX, bool removeY)
+        public static Vector3 Right(this CubeFace face)
         {
-            if(Mathf.Approximately(v.x, 0))
+            switch (face)
             {
-                return new Vector3(0f, removeX ? 0f : v.y, removeY ? 0f : v.z);
-            }
-            if(Mathf.Approximately(v.y, 0))
-            {
-                return new Vector3(removeX ? 0f : v.x, 0, removeY ? 0f : v.z);
-            }
-            if(Mathf.Approximately(v.z, 0))
-            {
-                return new Vector3(removeX ? 0f : v.x, removeY ? 0f : v.y, 0f);
-            }
+                case CubeFace.Up: return Vector3.right;
+                case CubeFace.Down: return Vector3.left;
+                case CubeFace.Right: return Vector3.back;
+                case CubeFace.Left: return Vector3.forward;
+                case CubeFace.Forward: return Vector3.down;
+                case CubeFace.Back: return Vector3.up;
 
-            throw new Exception("wtf oO");
+                default: throw new NotImplementedException("wtf òÓ");
+            }
         }
+
+        public static Vector3 Left(this CubeFace face)
+        {
+            return -face.Right();
+        }
+
+        public static float SumComponents(this Vector3 v)
+        {
+            return v.x + v.y + v.z;
+        }
+
+        
 
         public static CubeFace ToCubeFace(this Vector3 vector)
         {
@@ -84,31 +96,18 @@ namespace Assets.Systems.Pathfinding
                 CubeFace.Back;
         }
 
-        //TODO: dunno for what i needed this but it looks important
-        public static Vector3 MapToFacePlane(this CubeFace face, float x, float y)
-        {
-            var fieldDirection = -face.ToUpperLeftUnitVector();
-
-            if (Mathf.Approximately(fieldDirection.y, 0f))
-                return new Vector3(x, 0f, y);
-            if (Mathf.Approximately(fieldDirection.x, 0f))
-                return new Vector3(0f, x, y);
-            if (Mathf.Approximately(fieldDirection.z, 0f))
-                return new Vector3(x, y, 0f);
-
-            throw new Exception("should never happen òÓ");
-        }
+    
 
         public static CubeFace XOverflow(this CubeFace face)
         {
             switch (face)
             {
                 case CubeFace.Up: return CubeFace.Right;
-                case CubeFace.Right: return CubeFace.Up;
-                case CubeFace.Forward: return CubeFace.Right;
+                case CubeFace.Right: return CubeFace.Back;
+                case CubeFace.Forward: return CubeFace.Down;
                 case CubeFace.Down: return CubeFace.Left;
-                case CubeFace.Left: return CubeFace.Down;
-                case CubeFace.Back: return CubeFace.Left;
+                case CubeFace.Left: return CubeFace.Forward;
+                case CubeFace.Back: return CubeFace.Up;
             }
 
             throw new Exception("wtf oO");
@@ -116,17 +115,7 @@ namespace Assets.Systems.Pathfinding
 
         public static CubeFace XBelowZero(this CubeFace face)
         {
-            switch (face)
-            {
-                case CubeFace.Up: return CubeFace.Left;
-                case CubeFace.Right: return CubeFace.Down;
-                case CubeFace.Forward: return CubeFace.Left;
-                case CubeFace.Down: return CubeFace.Right;
-                case CubeFace.Left: return CubeFace.Up;
-                case CubeFace.Back: return CubeFace.Right;
-            }
-
-            throw new Exception("wtf oO");
+            return face.XOverflow().Opposite();
         }
 
         public static CubeFace YOverflow(this CubeFace face)
@@ -134,11 +123,11 @@ namespace Assets.Systems.Pathfinding
             switch (face)
             {
                 case CubeFace.Up: return CubeFace.Forward;
-                case CubeFace.Right: return CubeFace.Forward;
-                case CubeFace.Forward: return CubeFace.Up;
+                case CubeFace.Right: return CubeFace.Down;
+                case CubeFace.Forward: return CubeFace.Left;
                 case CubeFace.Down: return CubeFace.Back;
-                case CubeFace.Left: return CubeFace.Back;
-                case CubeFace.Back: return CubeFace.Down;
+                case CubeFace.Left: return CubeFace.Up;
+                case CubeFace.Back: return CubeFace.Right;
             }
 
             throw new Exception("wtf oO");
@@ -146,17 +135,7 @@ namespace Assets.Systems.Pathfinding
 
         public static CubeFace YBelowZero(this CubeFace face)
         {
-            switch (face)
-            {
-                case CubeFace.Up: return CubeFace.Back;
-                case CubeFace.Right: return CubeFace.Back;
-                case CubeFace.Forward: return CubeFace.Down;
-                case CubeFace.Down: return CubeFace.Forward;
-                case CubeFace.Left: return CubeFace.Forward;
-                case CubeFace.Back: return CubeFace.Up;
-            }
-
-            throw new Exception("wtf oO");
+            return face.YOverflow().Opposite();
         }
 
         public static CubeFace Opposite(this CubeFace face)
@@ -183,14 +162,6 @@ namespace Assets.Systems.Pathfinding
             if((oob & OutOfBounds.Y_Over_Max) != OutOfBounds.Nope) result = result.YOverflow();
 
             return result;
-        }
-
-        public enum Direction
-        {
-            Up,
-            Right,
-            Down,
-            Left
         }
     }
 }
