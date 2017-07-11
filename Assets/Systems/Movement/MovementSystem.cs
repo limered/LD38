@@ -34,23 +34,18 @@ namespace Assets.Systems.Movement
             {
                 if (component.direction == LookDirection.WithVelocity)
                 {
-                    var torque = Quaternion.LookRotation(rigidbody.velocity.normalized, pos.face.Up());
-                    torque = Quaternion.Slerp(rigidbody.transform.rotation, Quaternion.LookRotation(rigidbody.velocity.normalized, pos.face.Up()), Time.fixedDeltaTime * rigidbody.velocity.magnitude);
-                    // rigidbody.AddTorque(torque.eulerAngles * Time.fixedDeltaTime);
+                    var torque = Quaternion.Slerp(rigidbody.transform.rotation, Quaternion.LookRotation(rigidbody.velocity.normalized, pos.face.Up()), Time.fixedDeltaTime * component.torque); 
                     rigidbody.transform.rotation = torque;
                 }
                 else if (component.direction == LookDirection.WithMovingToDirection && moveComp && moveComp.nextDirection != Vector3.zero)
                 {
-                    var torque = Quaternion.LookRotation(moveComp.nextDirection, pos.face.Up());
-                    torque = Quaternion.Slerp(rigidbody.transform.rotation, Quaternion.LookRotation(moveComp.nextDirection, pos.face.Up()), Time.fixedDeltaTime * moveComp.Speed);
-                    // rigidbody.AddTorque(torque.eulerAngles * Time.fixedDeltaTime);
+                    var torque = Quaternion.Slerp(rigidbody.transform.rotation, Quaternion.LookRotation(moveComp.nextDirection, pos.face.Up()), Time.fixedDeltaTime * component.torque); 
                     rigidbody.transform.rotation = torque;
                 }
                 else
                 {
-                    // var torque = Quaternion.FromToRotation(component.transform.up, pos.face.Up());
-                    // // rigidbody.AddTorque(torque.eulerAngles * Time.fixedDeltaTime);
-                    // rigidbody.transform.rotation = torque;
+                    var rot = Quaternion.FromToRotation(component.transform.up, pos.face.Up());
+                    rigidbody.AddTorque(new Vector3(rot.x, rot.y, rot.z) * component.torque);
                 }
             })
             .AddTo(component);
@@ -74,7 +69,7 @@ namespace Assets.Systems.Movement
                 component.nextPostionDebug = destination.Simple;
 
                 if (!tracker.CurrentPosition.HasValue || destination != tracker.CurrentPosition.Value)
-                    component.NextTarget.Value = grid.grid[destination] + (tracker.simplePosition.face.Up() * tracker.height);
+                    component.NextTarget.Value = grid.grid[destination];
                 else
                     component.NextTarget.Value = Vector3.zero;
             })
@@ -101,7 +96,7 @@ namespace Assets.Systems.Movement
             .Select(_ => component.NextTarget.Value)
             .Subscribe(next =>
             {
-                component.nextDirection = (next - component.transform.position).normalized;
+                component.nextDirection = (next - tracker.fieldsWorldPosition).normalized;
                 rigidbody.AddForce(component.nextDirection * component.Speed /** Time.deltaTime*/);
             })
             .AddTo(component);

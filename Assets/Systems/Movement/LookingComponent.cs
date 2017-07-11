@@ -12,6 +12,7 @@ namespace Assets.Systems.Movement
     public class LookingComponent : GameComponent
     {
         public LookDirection direction;
+        public float torque = 10;
     }
 
     public enum LookDirection

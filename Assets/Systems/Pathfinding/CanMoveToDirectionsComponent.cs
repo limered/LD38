@@ -23,7 +23,7 @@ namespace Assets.Systems.Pathfinding
 
         void Update()
         {
-            // Debug.DrawLine(transform.position, transform.position+this.nextDirection, Color.cyan);
+            Debug.DrawLine(transform.position, transform.position+nextDirection, Color.cyan);
         }
         #endregion Debug
     }

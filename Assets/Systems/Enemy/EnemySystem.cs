@@ -78,9 +78,10 @@ namespace Assets.Systems.Enemy
         {
             component.UpdateAsObservable()
             .Sample(TimeSpan.FromSeconds(component.spawnTimer))
+            .StartWith(Unit.Default)
             .Where(_ => component.spawnObject != null)
             .Subscribe(_ => {
-                var spawned = GameObject.Instantiate(component.spawnObject, grid.transform.position + grid.extend.Value*CubeFace.Up.Up(), Quaternion.identity);
+                var spawned = GameObject.Instantiate(component.spawnObject, grid.transform.position + grid.extend.Value*CubeFace.Up.Up(), Quaternion.identity, component.transform);
             })
             .AddTo(component);
         }

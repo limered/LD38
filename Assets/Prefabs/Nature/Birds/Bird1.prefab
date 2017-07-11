@@ -486,7 +486,7 @@ MonoBehaviour:
     y: 0
     outOfBounds: 0
     face: 0
-  Speed: 10
+  Speed: 7
 --- !u!114 &114379104866211486
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -516,7 +516,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c777614b402e74a75a3c6a3b3a2a0e9b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  direction: 1
+  direction: 2
+  torque: 10
 --- !u!114 &114438086250929542
 MonoBehaviour:
   m_ObjectHideFlags: 1
