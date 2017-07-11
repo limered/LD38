@@ -7,11 +7,10 @@ using UnityEngine;
 namespace Assets.Systems.Pathfinding
 {
     [RequireComponent(typeof(Rigidbody))]
-    public class CanCalculateFlowFieldComponent : GameComponent
+    public class CanCalculateAStarPathComponent : GameComponent
     {
-        public readonly SerialDisposable MovingSubscription = new SerialDisposable();
         public ReactiveProperty<SimplePosition?> Destination = new ReactiveProperty<SimplePosition?>();
-        public ReactiveProperty<Dictionary<Position, Vector3>> CurrentFlowField = new ReactiveProperty<Dictionary<Position, Vector3>>();
+        public ReactiveProperty<List<Position>> CurrentPath = new ReactiveProperty<List<Position>>();
         public int blockTolerance = 0;
 
         

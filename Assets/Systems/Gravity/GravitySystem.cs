@@ -33,16 +33,35 @@ namespace Assets.Systems.Gravity
             var cps = component.GetComponent<TrackPositionComponent>();
             component.FixedUpdateAsObservable()
             .Where(_ => cps.CurrentPosition.Value != null)
-            .Subscribe(_ => UpdateGravity(component, cps.CurrentPosition.Value, rigidBody, grid))
+            .Subscribe(_ => UpdateGravity(component, cps, cps.CurrentPosition.Value, rigidBody, grid))
             .AddTo(component);
         }
 
-        private void UpdateGravity(GravityComponent comp, Position currentPos, Rigidbody rigidBody, NavigationGrid grid)
+        private void UpdateGravity(GravityComponent comp, TrackPositionComponent cps, Position currentPos, Rigidbody rigidBody, NavigationGrid grid)
         {
             var gravVec = currentPos.face.Opposite().Up() * _config.GravityForce;
+            var toCenter = grid.transform.position - comp.transform.position;
 
-            Debug.DrawRay(comp.transform.position, gravVec, Color.green);
+            if(!comp.OutOfAtmosphere.Value && currentPos.outOfBounds != OutOfBounds.Nope && toCenter.magnitude > grid.extend.Value * 1.25f)
+            {
+                comp.OutOfAtmosphere.SetValueAndForceNotify(true);
+                cps.CurrentPosition.SetValueAndForceNotify(grid.GetPosition(comp.transform.position, null));
+            }
+
+            if(comp.OutOfAtmosphere.Value && toCenter.magnitude < grid.extend.Value * 1.25f)
+            {
+                comp.OutOfAtmosphere.SetValueAndForceNotify(false);
+            }
+
+            if(comp.OutOfAtmosphere.Value)
+            {
+                gravVec = toCenter.normalized * _config.GravityForce;
+                // Debug.DrawRay(comp.transform.position, gravVec, Color.red);
+            }
+            // else Debug.DrawRay(comp.transform.position, gravVec, Color.green);
+
             rigidBody.AddForce(gravVec);
+            // Debug.DrawRay(rigidBody.transform.position, rigidBody.velocity, Color.yellow);
         }
 
         public override void Register(HoverComponent hover)
@@ -60,13 +79,17 @@ namespace Assets.Systems.Gravity
             .Subscribe(_ =>
              {
                  var force = posComponent.simplePosition.face.Up() * component.BounceForce.Between;
-                 var height = grid.GetHeight(component.transform.position, posComponent.CurrentPosition.Value);
-                 component.currentHeight = height;
+                 
 
-                 if(height < component.Height)
+                 if(posComponent.height < component.Height){
                     rigidbody.AddForce(force);
-                 else if(height > component.Height*2f && !component.onlyPushUp)
-                    rigidbody.AddForce(-force);
+                    component.pushing = true;
+                 }
+                 else{
+                     component.pushing = false;
+                 }
+                //  else if(height > component.Height*2f && !component.onlyPushUp)
+                //     rigidbody.AddForce(-force);
              })
             .AddTo(component);
         }

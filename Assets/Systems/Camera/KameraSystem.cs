@@ -14,8 +14,8 @@ namespace Assets.Systems.Camera
     {
         private GameObject _daPlaya;
         private GameObject _helper;
-        public int Priority { get { return 2; }}
-        public Type[] ComponentsToRegister { get { return new[] {typeof(PlayerComponent), typeof(CameraHelperComponent), typeof(CameraComponent)}; } }
+        public int Priority { get { return 2; } }
+        public Type[] ComponentsToRegister { get { return new[] { typeof(PlayerComponent), typeof(CameraHelperComponent), typeof(CameraComponent) }; } }
         public void Init() { }
 
         public void RegisterComponent(IGameComponent component)
@@ -35,7 +35,20 @@ namespace Assets.Systems.Camera
         public void RegisterCamera(CameraComponent camera)
         {
             if (!camera) return;
-            camera.FixedUpdateAsObservable().Subscribe(_ => MoveCamera(camera)).AddTo(camera);
+
+            if (camera.lookAtCenter)
+            {
+                NavigationGrid.ResolveGridAndWaitTilItFinishedCalculating(grid => RegisterCamera(camera, grid))
+                .AddTo(camera);
+            }
+            else camera.FixedUpdateAsObservable().Subscribe(_ => MoveCamera(camera)).AddTo(camera);
+        }
+
+        private void RegisterCamera(CameraComponent camera, NavigationGrid grid)
+        {
+            camera.FixedUpdateAsObservable()
+            .Subscribe(_ => camera.transform.LookAt(grid.transform))
+            .AddTo(camera);
         }
 
         private void MoveCamera(CameraComponent camera)
@@ -55,7 +68,7 @@ namespace Assets.Systems.Camera
                 camera.transform.Rotate(axis, angle, Space.World);
 
                 var targetRotation = Quaternion.AngleAxis((int)cps.CurrentPosition.Value.face, Vector3.forward);
-                var rotationStep = Quaternion.Slerp(camera.gameObject.transform.localRotation, targetRotation, t);                
+                var rotationStep = Quaternion.Slerp(camera.gameObject.transform.localRotation, targetRotation, t);
                 camera.gameObject.transform.localRotation = rotationStep;
             }
 

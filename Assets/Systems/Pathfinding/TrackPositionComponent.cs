@@ -9,19 +9,39 @@ namespace Assets.Systems.Pathfinding
     public class TrackPositionComponent : GameComponent
     {
         public readonly ReactiveProperty<Position> CurrentPosition = new ReactiveProperty<Position>();
-        
+
+        public bool isStatic = false;
+
         [Header(DebugUtils.DefaultDebugHeader)]
         public SimplePosition simplePosition;
         public Vector3 fieldsWorldPosition;
+        public float height;
 
-        protected override void OnStart()
+
+        void OnDrawGizmosSelected()
         {
-            IoC.OnResolve<NavigationGrid, Unit>( grid => Observable.ReturnUnit()).Subscribe(_ =>
+            if (Grid != null && CurrentPosition.Value != null)
             {
-                if (!CurrentPosition.HasValue)
-                    CurrentPosition.Value = IoC.Resolve<NavigationGrid>().GetPosition(transform.position, CurrentPosition.Value != null ? CurrentPosition.Value.face : (CubeFace?)null);
-            })
-            .AddTo(this);
+                Vector3 v;
+                if (Grid.grid.TryGetValue(CurrentPosition.Value, out v))
+                {
+                    Gizmos.color = CurrentPosition.Value.outOfBounds == OutOfBounds.Nope
+                        ? new Color(1, 0, 0, 0.5f)
+                        : new Color(0.2f, 0.2f, 0.2f, 0.5f);
+                    Grid.DrawField(CurrentPosition.Value, v, false);
+                }
+            }
+        }
+
+        private NavigationGrid grid;
+        private NavigationGrid Grid
+        {
+            get
+            {
+                if (grid == null)
+                    grid = IoC.ResolveOrDefault<NavigationGrid>();
+                return grid;
+            }
         }
     }
 }

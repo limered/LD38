@@ -12,6 +12,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Assets.Systems.Pathfinding;
 using Assets.Systems.GameOfLife;
+using UniRx;
 
 namespace Assets.SystemBase
 {
@@ -30,7 +31,7 @@ namespace Assets.SystemBase
 
         public void RegisterComponent(IGameComponent component)
         {
-            Debug.Log("register component: "+component.GetType());
+            // Debug.Log("register component: " + component.GetType());
             List<IGameSystem> systemsToRegisterTo;
             if (!_systemToComponentMapper.TryGetValue(component.GetType(), out systemsToRegisterTo)) return;
 
@@ -58,6 +59,7 @@ namespace Assets.SystemBase
 
             RegisterSystem(new CubalPositioningSystem()); // 20
             RegisterSystem(new NPCMovementSystem()); //21
+            RegisterSystem(new MovementSystem()); //22
 
             RegisterSystem(new GameOfLifeSystem()); //33
 
@@ -102,5 +104,7 @@ namespace Assets.SystemBase
                 DebugText.text = text;
             }
         }
+
+        
     }
 }

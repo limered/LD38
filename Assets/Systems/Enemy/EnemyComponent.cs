@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Assets.Systems.Enemy
 {
     [RequireComponent(typeof(Rigidbody))]
-    [RequireComponent(typeof(CanMoveOnPathComponent))]
+    [RequireComponent(typeof(CanMoveToDirectionsComponent))]
     public class EnemyComponent : GameComponent
     {
         public GameObject BulletSpawn;

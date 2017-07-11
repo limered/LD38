@@ -7,7 +7,6 @@ namespace Assets.Systems.Pathfinding
     [Serializable]
     public class Position
     {
-        public bool blocked = false;
         public readonly short x;
         public readonly short y;
         public readonly OutOfBounds outOfBounds;
@@ -140,6 +139,16 @@ namespace Assets.Systems.Pathfinding
                 return new SimplePosition(normalizedX, y, outOfBounds, face);
             }
         }
+
+        public static bool operator ==(Position p1, Position p2)
+        {
+            return (Position.ReferenceEquals(p1, null) && Position.ReferenceEquals(p2, null)) || (!Position.ReferenceEquals(p1, null) && p1.Equals(p2));
+        }
+
+        public static bool operator !=(Position p1, Position p2)
+        {
+            return !(p1 == p2);
+        }
     }
 
     public enum Neighbour
@@ -209,6 +218,18 @@ namespace Assets.Systems.Pathfinding
             return false;
         }
 
+        public static bool operator ==(SimplePosition p1, SimplePosition p2)
+        {
+            return p1.Equals(p2);
+        }
+
+        public static bool operator !=(SimplePosition p1, SimplePosition p2)
+        {
+            return !(p1 == p2);
+        }
+
+        
+
         public int Combine(int gridSize)
         {
             return Position.Combine((short)(x + gridSize * (int)face), y);
@@ -216,7 +237,7 @@ namespace Assets.Systems.Pathfinding
 
         public override string ToString()
         {
-            return "(x="+x+" y="+y+" face="+face+" out-of-bounds="+outOfBounds+")";
+            return "(x=" + x + " y=" + y + " face=" + face + " out-of-bounds=" + outOfBounds + ")";
         }
     }
 

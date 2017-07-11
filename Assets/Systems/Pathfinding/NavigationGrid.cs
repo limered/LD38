@@ -8,6 +8,7 @@ using UnityEngine;
 
 namespace Assets.Systems.Pathfinding
 {
+    [ExecuteInEditMode]
     public class NavigationGrid : MonoBehaviour
     {
         public short size = 10;
@@ -26,6 +27,7 @@ namespace Assets.Systems.Pathfinding
 
         public readonly Dictionary<int, Position> gridLUT = new Dictionary<int, Position>();
         public readonly Dictionary<Position, Vector3> grid = new Dictionary<Position, Vector3>();
+        public readonly Dictionary<Position, List<GameObject>> blocker = new Dictionary<Position, List<GameObject>>();
         public KeyValuePair<Position, Vector3>[] GridFields { get { return grid.ToArray(); } }
 
         public Vector3 offset = Vector3.zero;
@@ -54,6 +56,8 @@ namespace Assets.Systems.Pathfinding
             return gridCalculating.Where(x => !x).Take(1).Select(_ => Unit.Default);
         }
 
+        public readonly Subject<Tuple<Position, List<GameObject>>> onBlockerChange = new Subject<Tuple<Position, List<GameObject>>>();
+
         /// <summary>
         /// Awake is called when the script instance is being loaded.
         /// </summary>
@@ -78,7 +82,7 @@ namespace Assets.Systems.Pathfinding
         }
 
         private List<List<Position>> lastPaths = new List<List<Position>>();
-        public List<Position> FindPath(Position from, Position to)
+        public List<Position> FindPath(Position from, Position to, int blockTolerance)
         {
             if (from == null) throw new ArgumentNullException("from");
             if (to == null) throw new ArgumentNullException("to");
@@ -88,7 +92,7 @@ namespace Assets.Systems.Pathfinding
             Dictionary<Position, Node> cache = new Dictionary<Position, Node>();
             foreach (var p in grid)
             {
-                cache.Add(p.Key, new Node(grid, p.Key, cache));
+                cache.Add(p.Key, new Node(this, p.Key, cache, blockTolerance + (from == p.Key ? 1 : 0)));
             }
 
             try
@@ -104,17 +108,17 @@ namespace Assets.Systems.Pathfinding
             var astar = new AStar(cache[from], cache[to]);
             astar.Run();
             var l = astar.GetPath().Select(x => ((Node)x).pos).ToList();
-            lastPaths.Add(l);
+            // lastPaths.Add(l);
             while (lastPaths.Count > 1)
             {
                 lastPaths.RemoveAt(0);
             }
 
-            Debug.Log("calculated A-Star path from " + from + " to " + to + " in " + (System.DateTime.Now - startTime).TotalMilliseconds + "ms");
+            // Debug.Log("calculated A-Star path from " + from + " to " + to + " in " + (System.DateTime.Now - startTime).TotalMilliseconds + "ms");
             return l;
         }
 
-        private float GetDistanceToFace(Vector3 worldPos, CubeFace face)
+        private float GetDistanceToFaceAsSquaredMagnitude(Vector3 worldPos, CubeFace face)
         {
             return (worldPos - (face.Up() * extend.Value)).sqrMagnitude;  //(worldPos - (face.ToUnitVector()*extend.Value)).magnitude;  //Vector3.Dot(worldPos, face.Opposite().ToUnitVector());
         }
@@ -122,35 +126,35 @@ namespace Assets.Systems.Pathfinding
         private CubeFace GetNearestFace(Vector3 worldPosition)
         {
             var nearestFace = CubeFace.Up;
-            var nearestValue = GetDistanceToFace(worldPosition, nearestFace);
+            var nearestValue = GetDistanceToFaceAsSquaredMagnitude(worldPosition, nearestFace);
             var temp = 0f;
 
-            if (nearestValue > (temp = GetDistanceToFace(worldPosition, CubeFace.Up)))
+            if (nearestValue > (temp = GetDistanceToFaceAsSquaredMagnitude(worldPosition, CubeFace.Up)))
             {
                 nearestFace = CubeFace.Up;
                 nearestValue = temp;
             }
-            if (nearestValue > (temp = GetDistanceToFace(worldPosition, CubeFace.Down)))
+            if (nearestValue > (temp = GetDistanceToFaceAsSquaredMagnitude(worldPosition, CubeFace.Down)))
             {
                 nearestFace = CubeFace.Down;
                 nearestValue = temp;
             }
-            if (nearestValue > (temp = GetDistanceToFace(worldPosition, CubeFace.Back)))
+            if (nearestValue > (temp = GetDistanceToFaceAsSquaredMagnitude(worldPosition, CubeFace.Back)))
             {
                 nearestFace = CubeFace.Back;
                 nearestValue = temp;
             }
-            if (nearestValue > (temp = GetDistanceToFace(worldPosition, CubeFace.Forward)))
+            if (nearestValue > (temp = GetDistanceToFaceAsSquaredMagnitude(worldPosition, CubeFace.Forward)))
             {
                 nearestFace = CubeFace.Forward;
                 nearestValue = temp;
             }
-            if (nearestValue > (temp = GetDistanceToFace(worldPosition, CubeFace.Left)))
+            if (nearestValue > (temp = GetDistanceToFaceAsSquaredMagnitude(worldPosition, CubeFace.Left)))
             {
                 nearestFace = CubeFace.Left;
                 nearestValue = temp;
             }
-            if (nearestValue > (temp = GetDistanceToFace(worldPosition, CubeFace.Right)))
+            if (nearestValue > (temp = GetDistanceToFaceAsSquaredMagnitude(worldPosition, CubeFace.Right)))
             {
                 nearestFace = CubeFace.Right;
                 nearestValue = temp;
@@ -296,14 +300,14 @@ namespace Assets.Systems.Pathfinding
 
         private readonly Dictionary<Position, Dictionary<Position, Vector3>> flowFields = new Dictionary<Position, Dictionary<Position, Vector3>>();
 
-        private Dictionary<Position, float> CreateDijkstraGrid(Position start, int maxDistance)
+        private Dictionary<Position, float> CreateDijkstraGrid(Position start, int maxDistance, int blockTolerance, Position staningOn)
         {
             var dg = new Dictionary<Position, float>();
-            SetValueForPosition(start, 0, dg, maxDistance);
+            SetValueForPosition(start, 0, dg, maxDistance, blockTolerance, staningOn);
             return dg;
         }
 
-        private void SetValueForPosition(Position p, float d, Dictionary<Position, float> dg, float maxDistance)
+        private void SetValueForPosition(Position p, float d, Dictionary<Position, float> dg, float maxDistance, int blockTolerance, Position standingOn)
         {
             if (dg.ContainsKey(p))
             {
@@ -317,9 +321,10 @@ namespace Assets.Systems.Pathfinding
                             continue;
 
                         var n = p.GetNeighbour(GridCalculations.AllNeighbourDirections[i]);
+                        var blocked = blocker[n].Count;
                         var isDiagonal = ((int)GridCalculations.AllNeighbourDirections[i]) % 2 != 0;
 
-                        if (n != null && !n.blocked) SetValueForPosition(n, d + (isDiagonal ? 1.41f : 1f), dg, maxDistance);
+                        if (n != null && blocked <= blockTolerance + (n==standingOn ? 1 : 0)) SetValueForPosition(n, d + (isDiagonal ? 1.41f : 1f), dg, maxDistance, blockTolerance, standingOn);
                     }
                 }
             }
@@ -332,30 +337,31 @@ namespace Assets.Systems.Pathfinding
                         continue;
 
                     var n = p.GetNeighbour(GridCalculations.AllNeighbourDirections[i]);
+                    var blocked = blocker[n].Count;
                     var isDiagonal = ((int)GridCalculations.AllNeighbourDirections[i]) % 2 != 0;
 
-                    if (!n.blocked) SetValueForPosition(n, d + (isDiagonal ? 1.41f : 1f), dg, maxDistance);
+                    if (blocked <= blockTolerance + (n==standingOn ? 1 : 0)) SetValueForPosition(n, d + (isDiagonal ? 1.41f : 1f), dg, maxDistance, blockTolerance, standingOn);
                 }
             }
         }
 
         private Dictionary<Position, Vector3> lastVectorField;
-        public Dictionary<Position, Vector3> GetVectorField(Position to, int maxDistance = 20)
+        public Dictionary<Position, Vector3> GetVectorField(Position to, int blockTolerance, Position standingOn, int maxDistance = 20)
         {
             var startTime = DateTime.Now;
             Dictionary<Position, Vector3> vectorField;
             if (!flowFields.TryGetValue(to, out vectorField))
             {
                 vectorField = new Dictionary<Position, Vector3>();
-                var dijkstraGrid = CreateDijkstraGrid(to, maxDistance);
+                var dijkstraGrid = CreateDijkstraGrid(to, maxDistance, blockTolerance, standingOn);
 
                 foreach (var p in dijkstraGrid)
                 {
                     vectorField.Add(p.Key,
                          grid[
                             p.Key.neighbours
-                                .Where(n => n != null && !p.Key.blocked && dijkstraGrid.ContainsKey(n))
-                                .Aggregate((px, minNeighbour) => dijkstraGrid[px] <= dijkstraGrid[minNeighbour] ? px : minNeighbour)
+                                .Where(n => n != null && blocker[p.Key].Count <= blockTolerance && dijkstraGrid.ContainsKey(n))
+                                .Aggregate(p.Key, (px, minNeighbour) => dijkstraGrid[px] <= dijkstraGrid[minNeighbour] ? px : minNeighbour)
                         ] - grid[p.Key]
                     );
                 }
@@ -380,6 +386,7 @@ namespace Assets.Systems.Pathfinding
 
                 grid.Clear();
                 gridLUT.Clear();
+                blocker.Clear();
                 AddCubeFacePositions(CubeFace.Up);
                 AddCubeFacePositions(CubeFace.Down);
                 AddCubeFacePositions(CubeFace.Left);
@@ -546,6 +553,7 @@ namespace Assets.Systems.Pathfinding
 
                     grid.Add(pos, ToWorldPosition(face, nX, nY));
                     gridLUT.Add(pos.Combined, pos);
+                    blocker.Add(pos, new List<GameObject>());
                 }
             }
         }
@@ -601,7 +609,7 @@ namespace Assets.Systems.Pathfinding
                     if (renderGrid)
                     {
                         Gizmos.color = blockedColor;
-                        if (g.Key.blocked)
+                        if (blocker[g.Key].Count > 0)
                         {
                             DrawField(g.Key, g.Value, true);
                         }

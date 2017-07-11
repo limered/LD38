@@ -6,19 +6,20 @@ namespace Assets.Systems.Pathfinding
 {
     public class Node : INode
     {
-        private readonly Dictionary<Position, Node> cache;
+        public readonly int blockTolerance;
         public readonly Position pos;
-        private readonly Dictionary<Position, Vector3> grid;
+        private readonly NavigationGrid grid;
+        private readonly Dictionary<Position, Node> cache;
         private bool isOpenList = false;
         private bool isClosedList = false;
 
 
-        public Node(Dictionary<Position, Vector3> grid, Position position, Dictionary<Position, Node> cache)
+        public Node(NavigationGrid grid, Position position, Dictionary<Position, Node> cache, int blockTolerance)
         {
             this.grid = grid;
             this.pos = position;
             this.cache = cache;
-
+            this.blockTolerance = blockTolerance;
             // cache.Add(pos, this);
         }
 
@@ -47,7 +48,7 @@ namespace Assets.Systems.Pathfinding
 
         public bool IsClosedList(IEnumerable<INode> closedList)
         {
-            return isClosedList || pos.blocked;
+            return isClosedList || grid.blocker[pos].Count > blockTolerance;
         }
 
         public bool IsGoal(INode goal)
@@ -69,7 +70,7 @@ namespace Assets.Systems.Pathfinding
         {
             var g = (Node)goal;
             //this.EstimatedCost = Math.Abs(this.pos.x - g.pos.x) + Math.Abs(this.pos.y - g.pos.y); //stupid (use real distance instead)
-            this.EstimatedCost = (int)(grid[pos] - grid[g.pos]).sqrMagnitude;
+            this.EstimatedCost = (int)(grid.grid[pos] - grid.grid[g.pos]).sqrMagnitude;
         }
 
         public void SetMovementCost(INode parent)

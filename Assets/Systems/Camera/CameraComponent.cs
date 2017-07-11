@@ -7,5 +7,6 @@ namespace Assets.Systems.Camera
     public class CameraComponent : GameComponent
     {
         public int AnimationIntevall = 10;
+        public bool lookAtCenter = true;
     }
 }

@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 
 namespace Assets.Systems.Enemy
 {
-    public class EnemySystem : GameSystem<EnemySystemConfig, PlayerComponent, EnemyComponent>
+    public class EnemySystem : GameSystem<EnemySystemConfig, PlayerComponent, EnemyComponent, SpawnNPCComponent>
     {
         private GameObject _player;
         private EnemySystemConfig _config;
@@ -66,6 +66,23 @@ namespace Assets.Systems.Enemy
         public override void Register(EnemySystemConfig component)
         {
             _config = component;
+        }
+
+        public override void Register(SpawnNPCComponent component)
+        {
+            NavigationGrid.ResolveGridAndWaitTilItFinishedCalculating(grid => Register(component, grid))
+            .AddTo(component);
+        }
+
+        private void Register(SpawnNPCComponent component, NavigationGrid grid)
+        {
+            component.UpdateAsObservable()
+            .Sample(TimeSpan.FromSeconds(component.spawnTimer))
+            .Where(_ => component.spawnObject != null)
+            .Subscribe(_ => {
+                var spawned = GameObject.Instantiate(component.spawnObject, grid.transform.position + grid.extend.Value*CubeFace.Up.Up(), Quaternion.identity);
+            })
+            .AddTo(component);
         }
     }
 }

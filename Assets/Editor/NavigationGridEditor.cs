@@ -43,7 +43,7 @@ public class NavigationGridEditor : Editor
                 rndPositions2.Enqueue(pos1);
                 var pos2 = rndPositions.Dequeue();
                 rndPositions2.Enqueue(pos2);
-                grid.GetVectorField(pos2);
+                grid.GetVectorField(pos2, 0, null);
             }
             Debug.Log("Calculated "+amount+" Vectorfields in "+(System.DateTime.Now-startTime).TotalMilliseconds+"ms");
 
@@ -54,7 +54,7 @@ public class NavigationGridEditor : Editor
                 rndPositions.Enqueue(pos1);
                 var pos2 = rndPositions2.Dequeue();
                 rndPositions.Enqueue(pos2);
-                grid.FindPath(pos1, pos2);
+                grid.FindPath(pos1, pos2, 0);
             }
             Debug.Log("Calculated "+amount+" A* Paths in "+(System.DateTime.Now-startTime).TotalMilliseconds+"ms");
 

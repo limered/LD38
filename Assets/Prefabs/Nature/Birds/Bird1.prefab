@@ -71,8 +71,10 @@ GameObject:
   - component: {fileID: 114846220558734256}
   - component: {fileID: 114834874093109434}
   - component: {fileID: 65149920126123906}
-  - component: {fileID: 114764073880749102}
-  - component: {fileID: 114618290138584940}
+  - component: {fileID: 114379104866211486}
+  - component: {fileID: 114287994765024016}
+  - component: {fileID: 114438086250929542}
+  - component: {fileID: 114415343980554090}
   m_Layer: 0
   m_Name: Bird1
   m_TagString: Untagged
@@ -181,8 +183,8 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1357469289027984}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 9.45, y: 28.98, z: 20.43}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -3.96, y: 30.46, z: -1.49}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4817828265899644}
@@ -236,7 +238,7 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1855778503443256}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: -0, w: -0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -245,7 +247,7 @@ Transform:
   - {fileID: 4636690016190598}
   m_Father: {fileID: 4607012874606016}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 270, z: 0}
 --- !u!4 &4927004327813628
 Transform:
   m_ObjectHideFlags: 1
@@ -384,8 +386,8 @@ Rigidbody:
   m_GameObject: {fileID: 1357469289027984}
   serializedVersion: 2
   m_Mass: 1
-  m_Drag: 0.2
-  m_AngularDrag: 0.02
+  m_Drag: 1
+  m_AngularDrag: 0.1
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
@@ -425,12 +427,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef273a1cadb8e459197551dbe053d3cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isStatic: 0
   simplePosition:
     x: 0
     y: 0
     outOfBounds: 0
     face: 0
   fieldsWorldPosition: {x: 0, y: 0, z: 0}
+  height: 0
 --- !u!114 &114118211979487416
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -463,7 +467,7 @@ MonoBehaviour:
   currentFrame: 0
   ActiveState:
     value: 1
---- !u!114 &114618290138584940
+--- !u!114 &114287994765024016
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -471,7 +475,57 @@ MonoBehaviour:
   m_GameObject: {fileID: 1357469289027984}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b9e5d51a4db78419680a734d2ad3591a, type: 3}
+  m_Script: {fileID: 11500000, guid: 03c8271539d904fe5ab0a514cbfa5b83, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  NextTarget:
+    value: {x: 0, y: 0, z: 0}
+  nextDirection: {x: 0, y: 0, z: 0}
+  nextPostionDebug:
+    x: 0
+    y: 0
+    outOfBounds: 0
+    face: 0
+  Speed: 10
+--- !u!114 &114379104866211486
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1357469289027984}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6aad3c9df90644e3f9b922ea342b7767, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  blockTolerance: 100
+  currentDestination:
+    x: 0
+    y: 0
+    outOfBounds: 0
+    face: 0
+  distanceToDestination: 0
+--- !u!114 &114415343980554090
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1357469289027984}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c777614b402e74a75a3c6a3b3a2a0e9b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  direction: 1
+--- !u!114 &114438086250929542
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1357469289027984}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ee28e350b91e44f486f20bea3bb3a47, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   currentGoal:
@@ -479,26 +533,6 @@ MonoBehaviour:
     y: 0
     outOfBounds: 0
     face: 0
-  Speed: 10
---- !u!114 &114764073880749102
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1357469289027984}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea1019033c9634a2ca6044aec13b5d28, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  CurrentDirection:
-    value: {x: 0, y: 0, z: 0}
-  currentDestination:
-    x: 0
-    y: 0
-    outOfBounds: 0
-    face: 0
-  distanceToDestination: 0
 --- !u!114 &114834874093109434
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -511,9 +545,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   BounceForce:
-    Min: 10
-    Max: 20
+    Min: 20
+    Max: 30
   Height: 4
+  onlyPushUp: 1
   currentHeight: 0
   pushing: 0
 --- !u!114 &114846220558734256
@@ -527,6 +562,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bd010bf0e986d3c4bbdb437304a139a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  OutOfAtmosphere:
+    value: 0
 --- !u!114 &114899573792587764
 MonoBehaviour:
   m_ObjectHideFlags: 1
