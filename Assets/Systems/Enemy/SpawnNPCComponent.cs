@@ -8,5 +8,7 @@ namespace Assets.Systems.Enemy
     {
         public GameObject spawnObject;
         public float spawnTimer=5;
+
+        public float height = 10;
     }
 }

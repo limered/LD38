@@ -62,7 +62,8 @@ namespace Assets.Systems.Movement
 
             // set goals periodically
             component.FixedUpdateAsObservable()
-            .Sample(TimeSpan.FromSeconds(10))
+            .Delay(TimeSpan.FromSeconds(component.delayFirstCalculation))
+            .Sample(TimeSpan.FromSeconds(component.recalculateInterval))
             .StartWith(Unit.Default)
             .Subscribe(_ => component.goal.SetValueAndForceNotify(grid.grid.ToList()[UnityEngine.Random.Range(0, grid.grid.Count)].Key.Simple))
             .AddTo(component);

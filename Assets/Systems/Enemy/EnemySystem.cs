@@ -81,7 +81,7 @@ namespace Assets.Systems.Enemy
             .StartWith(Unit.Default)
             .Where(_ => component.spawnObject != null)
             .Subscribe(_ => {
-                var spawned = GameObject.Instantiate(component.spawnObject, grid.transform.position + grid.extend.Value*CubeFace.Up.Up(), Quaternion.identity, component.transform);
+                var spawned = GameObject.Instantiate(component.spawnObject, grid.transform.position + (grid.extend.Value+component.height)*CubeFace.Up.Up(), Quaternion.identity, component.transform);
             })
             .AddTo(component);
         }

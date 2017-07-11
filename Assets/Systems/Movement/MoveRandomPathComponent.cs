@@ -14,6 +14,10 @@ namespace Assets.Systems.Movement
     public class MoveRandomPathComponent : GameComponent
     {
         public ReactiveProperty<SimplePosition> goal = new ReactiveProperty<SimplePosition>();
+
+        public float recalculateInterval = 10;
+        public float delayFirstCalculation = 0;
+        
         public SimplePosition currentGoal;
     }
 }
